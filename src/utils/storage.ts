@@ -4,7 +4,7 @@ const STORAGE_KEY = 'guitar-maintenance-app';
 
 export const loadFromStorage = (): AppState => {
   if (typeof window === 'undefined') {
-    return { guitars: [], maintenanceLogs: [] };
+    return { guitars: [], maintenanceLogs: [], isLoading: false };
   }
   
   try {
@@ -21,14 +21,15 @@ export const loadFromStorage = (): AppState => {
           ...m,
           maintenanceDate: new Date(m.maintenanceDate),
           createdAt: new Date(m.createdAt)
-        })) || []
+        })) || [],
+        isLoading: false
       };
     }
   } catch (error) {
     console.error('Error loading from storage:', error);
   }
   
-  return { guitars: [], maintenanceLogs: [] };
+  return { guitars: [], maintenanceLogs: [], isLoading: false };
 };
 
 export const saveToStorage = (state: AppState): void => {
