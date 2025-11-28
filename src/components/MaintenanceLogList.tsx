@@ -60,9 +60,7 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                 {log.notes && (
                   <p className="text-gray-600 mb-2">{log.notes}</p>
                 )}
-                <div className="text-xs text-gray-500">
-                  Log created: {formatDate(log.createdAt)}
-                </div>
+                
               </div>
             </div>
             <div className="flex items-center space-x-2">

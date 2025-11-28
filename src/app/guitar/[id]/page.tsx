@@ -114,7 +114,7 @@ export default function GuitarDetail() {
                     Last Work Date
                   </h3>
                   <p className="text-gray-600">
-                    {formatDate(guitarWithStatus.lastMaintenanceDate)} 
+                    {formatDate(guitarWithStatus.lastMaintenanceDate)}{' '}
                     ({guitarWithStatus.daysSinceMaintenance} days ago)
                   </p>
                 </div>
