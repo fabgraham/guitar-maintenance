@@ -19,6 +19,7 @@ export interface MaintenanceLog {
 export interface AppState {
   guitars: Guitar[];
   maintenanceLogs: MaintenanceLog[];
+  isLoading: boolean;
 }
 
 export type MaintenanceStatus = 'urgent' | 'warning' | 'good';

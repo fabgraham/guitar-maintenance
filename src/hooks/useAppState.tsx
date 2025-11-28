@@ -17,7 +17,8 @@ type AppAction =
 
 const initialState: AppState = {
   guitars: [],
-  maintenanceLogs: []
+  maintenanceLogs: [],
+  isLoading: true
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -27,7 +28,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'ADD_GUITAR':
       newState = {
         ...state,
-        guitars: [...state.guitars, action.payload]
+        guitars: [...state.guitars, action.payload],
+        isLoading: false
       };
       if (supabase) {
         const g = action.payload;
@@ -113,7 +115,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       }
       break;
     case 'LOAD_STATE':
-      newState = action.payload;
+      newState = { ...action.payload, isLoading: false };
       break;
     default:
       return state;
@@ -172,17 +174,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           }));
           await supabase.from('guitars').upsert(seedG);
           await supabase.from('maintenance_logs').upsert(seedM);
-          dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs } });
+          dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } });
           return;
         }
-        dispatch({ type: 'LOAD_STATE', payload: { guitars, maintenanceLogs } });
+        dispatch({ type: 'LOAD_STATE', payload: { guitars, maintenanceLogs, isLoading: false } });
         return;
       }
       const loadedState = loadFromStorage();
       if (loadedState.guitars.length > 0 || loadedState.maintenanceLogs.length > 0) {
-        dispatch({ type: 'LOAD_STATE', payload: loadedState });
+        dispatch({ type: 'LOAD_STATE', payload: { ...loadedState, isLoading: false } });
       } else {
-        dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs } });
+        dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } });
       }
     };
     load();
