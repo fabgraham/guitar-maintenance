@@ -2,6 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const dynamicParams = true;
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
