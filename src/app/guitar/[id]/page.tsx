@@ -23,12 +23,18 @@ export default function GuitarDetail() {
   const [showLogForm, setShowLogForm] = useState(false);
   const [editingLog, setEditingLog] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const guitarId = params.id as string;
   const guitar = state.guitars.find(g => g.id === guitarId);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Show loading if we're still loading data OR if we haven't found the guitar yet but have no guitars loaded
-  if (state.isLoading || (!guitar && state.guitars.length === 0)) {
+  // Also show loading during initial mount to prevent SSR mismatch
+  if (!mounted || state.isLoading || (!guitar && state.guitars.length === 0)) {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
