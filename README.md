@@ -2,8 +2,6 @@
 
 A modern web application built with Next.js to help guitarists track the maintenance history of their instrument collection. Keep your guitars playing their best by monitoring string changes, setups, and repairs.
 
-![Dashboard Preview](https://placehold.co/600x400?text=Dashboard+Preview)
-
 ## 🚀 Features
 
 - **Dashboard Overview**: Get an at-a-glance view of your collection's health.
