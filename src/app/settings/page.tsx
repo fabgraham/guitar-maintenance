@@ -15,7 +15,7 @@ export default function Settings() {
       // Reset state
       dispatch({ 
         type: 'LOAD_STATE', 
-        payload: { guitars: [], maintenanceLogs: [] } 
+        payload: { guitars: [], maintenanceLogs: [], isLoading: false } 
       });
       
       alert('All data has been cleared.');
@@ -62,7 +62,8 @@ export default function Settings() {
               ...m,
               maintenanceDate: new Date(m.maintenanceDate),
               createdAt: new Date(m.createdAt)
-            }))
+            })),
+            isLoading: false
           };
           
           dispatch({ type: 'LOAD_STATE', payload: parsedData });
@@ -77,16 +78,9 @@ export default function Settings() {
 
   const handleSeedSampleData = () => {
     if (confirm('This will add sample guitars and maintenance logs to your collection. Continue?')) {
-      const now = new Date();
-      
-      // Add sample guitars
-      seedGuitars.forEach(guitar => {
-        dispatch({ type: 'ADD_GUITAR', payload: guitar });
-      });
-      
-      // Add sample maintenance logs
-      seedMaintenanceLogs.forEach(log => {
-        dispatch({ type: 'ADD_MAINTENANCE_LOG', payload: log });
+      dispatch({ 
+        type: 'LOAD_STATE', 
+        payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } 
       });
       
       alert('Sample data added successfully!');
