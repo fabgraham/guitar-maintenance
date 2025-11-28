@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const dynamicParams = true;
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MaintenanceLogForm } from '@/components/MaintenanceLogForm';
 import { MaintenanceLogList } from '@/components/MaintenanceLogList';
@@ -27,7 +27,8 @@ export default function GuitarDetail() {
   const guitarId = params.id as string;
   const guitar = state.guitars.find(g => g.id === guitarId);
   
-  if (state.isLoading) {
+  // Only show loading if we are truly waiting for data and haven't found the guitar yet
+  if (state.isLoading && !guitar) {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
