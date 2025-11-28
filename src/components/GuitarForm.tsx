@@ -97,7 +97,7 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
               name="maker"
               value={formData.maker}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
               placeholder="e.g., Fender, Gibson, PRS"
               required
             />
@@ -113,7 +113,7 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
               name="model"
               value={formData.model}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
               placeholder="e.g., Stratocaster, Les Paul, Custom 24"
               required
             />
@@ -129,7 +129,7 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
               name="stringSpecs"
               value={formData.stringSpecs}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
               placeholder="e.g., 009-046 Daddario (regular)"
             />
           </div>
