@@ -153,6 +153,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           notes: row.notes || '',
           createdAt: new Date(row.created_at)
         }));
+        if (guitars.length === 0 && maintenanceLogs.length === 0) {
+          const seedG = seedGuitars.map(g => ({
+            id: g.id,
+            maker: g.maker,
+            model: g.model,
+            string_specs: g.stringSpecs,
+            created_at: g.createdAt.toISOString(),
+            updated_at: g.updatedAt.toISOString()
+          }));
+          const seedM = seedMaintenanceLogs.map(m => ({
+            id: m.id,
+            guitar_id: m.guitarId,
+            maintenance_date: m.maintenanceDate.toISOString(),
+            type_of_work: m.typeOfWork,
+            notes: m.notes,
+            created_at: m.createdAt.toISOString()
+          }));
+          await supabase.from('guitars').upsert(seedG);
+          await supabase.from('maintenance_logs').upsert(seedM);
+          dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs } });
+          return;
+        }
         dispatch({ type: 'LOAD_STATE', payload: { guitars, maintenanceLogs } });
         return;
       }
