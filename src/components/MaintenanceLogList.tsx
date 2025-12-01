@@ -2,7 +2,8 @@
 
 import { MaintenanceLog } from '@/types';
 import { Edit, Trash2, Calendar, Wrench } from 'lucide-react';
-import { useAppState } from '@/hooks/useAppState';
+import { useAppState, deleteMaintenanceLogFromSupabase } from '@/hooks/useAppState';
+import { useToast } from '@/contexts/ToastContext';
 import { useState } from 'react';
 import { ConfirmDialog } from './ConfirmDialog';
 
@@ -13,6 +14,7 @@ interface MaintenanceLogListProps {
 
 export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProps) {
   const { dispatch } = useAppState();
+  const { showToast } = useToast();
   const [confirmingLogId, setConfirmingLogId] = useState<string | null>(null);
 
   const formatDate = (date: Date) => {
@@ -83,9 +85,22 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
             title="Delete Maintenance Item"
             description="This will delete the selected maintenance entry. This action cannot be undone."
             confirmText="Delete"
-            onConfirm={() => {
+            onConfirm={async () => {
+              const logIdToDelete = log.id;
               setConfirmingLogId(null);
-              dispatch({ type: 'DELETE_MAINTENANCE_LOG', payload: log.id });
+
+              // Optimistic update to localStorage
+              dispatch({ type: 'DELETE_MAINTENANCE_LOG', payload: logIdToDelete });
+
+              // Background sync to Supabase with error handling
+              const { error } = await deleteMaintenanceLogFromSupabase(logIdToDelete);
+
+              if (error) {
+                console.error('Supabase sync error:', error);
+                showToast('Maintenance log deleted locally, but failed to sync to cloud', 'warning');
+              } else {
+                showToast('Maintenance log deleted successfully!', 'success');
+              }
             }}
             onCancel={() => setConfirmingLogId(null)}
           />

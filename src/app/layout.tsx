@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/hooks/useAppState'
 import { Navigation } from '@/components/Navigation'
+import { ToastProvider } from '@/contexts/ToastContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -13,14 +14,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AppProvider>
-          <div className="min-h-screen bg-gray-50">
-            <Navigation />
-            <div className="content pt-12 md:pt-0">
-              {children}
+        <ToastProvider>
+          <AppProvider>
+            <div className="min-h-screen bg-gray-50">
+              <Navigation />
+              <div className="content pt-12 md:pt-0">
+                {children}
+              </div>
             </div>
-          </div>
-        </AppProvider>
+          </AppProvider>
+        </ToastProvider>
       </body>
     </html>
   )

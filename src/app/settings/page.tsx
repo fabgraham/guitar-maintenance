@@ -1,25 +1,36 @@
 'use client';
 
+import { useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
+import { useToast } from '@/contexts/ToastContext';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Trash2, Download, Upload, Database } from 'lucide-react';
 import { seedGuitars, seedMaintenanceLogs } from '@/utils/seedData';
 
 export default function Settings() {
   const { state, dispatch } = useAppState();
+  const { showToast } = useToast();
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmImport, setConfirmImport] = useState(false);
+  const [confirmSeed, setConfirmSeed] = useState(false);
+  const [pendingImportData, setPendingImportData] = useState<any>(null);
 
   const handleClearAllData = () => {
-    if (confirm('Are you sure you want to clear all data? This will delete all guitars and maintenance logs. This action cannot be undone.')) {
-      // Clear localStorage
-      localStorage.removeItem('guitar-maintenance-app');
-      
-      // Reset state
-      dispatch({ 
-        type: 'LOAD_STATE', 
-        payload: { guitars: [], maintenanceLogs: [], isLoading: false } 
-      });
-      
-      alert('All data has been cleared.');
-    }
+    setConfirmClear(true);
+  };
+
+  const confirmClearAllData = () => {
+    // Clear localStorage
+    localStorage.removeItem('guitar-maintenance-app');
+
+    // Reset state
+    dispatch({
+      type: 'LOAD_STATE',
+      payload: { guitars: [], maintenanceLogs: [], isLoading: false }
+    });
+
+    showToast('All data has been cleared', 'success');
+    setConfirmClear(false);
   };
 
   const handleExportData = () => {
@@ -43,48 +54,57 @@ export default function Settings() {
     reader.onload = (e) => {
       try {
         const importedData = JSON.parse(e.target?.result as string);
-        
+
         // Validate the imported data structure
         if (!importedData.guitars || !importedData.maintenanceLogs) {
-          alert('Invalid file format. Please select a valid backup file.');
+          showToast('Invalid file format. Please select a valid backup file.', 'error');
           return;
         }
 
-        if (confirm('This will replace all existing data. Are you sure you want to continue?')) {
-          // Parse dates from strings
-          const parsedData = {
-            guitars: importedData.guitars.map((g: any) => ({
-              ...g,
-              createdAt: new Date(g.createdAt),
-              updatedAt: new Date(g.updatedAt)
-            })),
-            maintenanceLogs: importedData.maintenanceLogs.map((m: any) => ({
-              ...m,
-              maintenanceDate: new Date(m.maintenanceDate),
-              createdAt: new Date(m.createdAt)
-            })),
-            isLoading: false
-          };
-          
-          dispatch({ type: 'LOAD_STATE', payload: parsedData });
-          alert('Data imported successfully!');
-        }
+        // Store for confirmation
+        setPendingImportData(importedData);
+        setConfirmImport(true);
       } catch (error) {
-        alert('Error importing data. Please check the file format.');
+        showToast('Error importing data. Please check the file format.', 'error');
       }
     };
     reader.readAsText(file);
   };
 
+  const confirmImportData = () => {
+    // Parse dates from strings
+    const parsedData = {
+      guitars: pendingImportData.guitars.map((g: any) => ({
+        ...g,
+        createdAt: new Date(g.createdAt),
+        updatedAt: new Date(g.updatedAt)
+      })),
+      maintenanceLogs: pendingImportData.maintenanceLogs.map((m: any) => ({
+        ...m,
+        maintenanceDate: new Date(m.maintenanceDate),
+        createdAt: new Date(m.createdAt)
+      })),
+      isLoading: false
+    };
+
+    dispatch({ type: 'LOAD_STATE', payload: parsedData });
+    showToast('Data imported successfully!', 'success');
+    setConfirmImport(false);
+    setPendingImportData(null);
+  };
+
   const handleSeedSampleData = () => {
-    if (confirm('This will add sample guitars and maintenance logs to your collection. Continue?')) {
-      dispatch({ 
-        type: 'LOAD_STATE', 
-        payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } 
-      });
-      
-      alert('Sample data added successfully!');
-    }
+    setConfirmSeed(true);
+  };
+
+  const confirmSeedSampleData = () => {
+    dispatch({
+      type: 'LOAD_STATE',
+      payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false }
+    });
+
+    showToast('Sample data added successfully!', 'success');
+    setConfirmSeed(false);
   };
 
   return (
@@ -209,6 +229,36 @@ export default function Settings() {
             </div>
           </div>
         </div>
+
+        <ConfirmDialog
+          isOpen={confirmClear}
+          title="Clear All Data"
+          description="Are you sure you want to clear all data? This will delete all guitars and maintenance logs. This action cannot be undone."
+          confirmText="Clear All Data"
+          onConfirm={confirmClearAllData}
+          onCancel={() => setConfirmClear(false)}
+        />
+
+        <ConfirmDialog
+          isOpen={confirmImport}
+          title="Import Data"
+          description="This will replace all existing data. Are you sure you want to continue?"
+          confirmText="Import Data"
+          onConfirm={confirmImportData}
+          onCancel={() => {
+            setConfirmImport(false);
+            setPendingImportData(null);
+          }}
+        />
+
+        <ConfirmDialog
+          isOpen={confirmSeed}
+          title="Add Sample Data"
+          description="This will add sample guitars and maintenance logs to your collection. Continue?"
+          confirmText="Add Sample Data"
+          onConfirm={confirmSeedSampleData}
+          onCancel={() => setConfirmSeed(false)}
+        />
     </main>
   );
 }

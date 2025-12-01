@@ -1,12 +1,15 @@
 'use client';
 import { GuitarRow } from '@/components/GuitarRow';
+import { GuitarForm } from '@/components/GuitarForm';
 import { useAppState } from '@/hooks/useAppState';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Dashboard() {
   const { state } = useAppState();
   const [sortBy, setSortBy] = useState<'status' | 'name'>('status');
+  const [showGuitarForm, setShowGuitarForm] = useState(false);
   
   // Calculate maintenance status for all guitars
   const guitarsWithStatus = state.guitars.map(guitar =>
@@ -76,7 +79,13 @@ export default function Dashboard() {
               <p className="text-gray-600 mb-4">
                 Start by adding your first guitar to track maintenance.
               </p>
-              
+              <button
+                onClick={() => setShowGuitarForm(true)}
+                className="btn btn-primary inline-flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Guitar
+              </button>
             </div>
           </div>
         ) : (
@@ -85,6 +94,12 @@ export default function Dashboard() {
               <GuitarRow key={guitar.id} guitar={guitar} />
             ))}
           </div>
+        )}
+
+        {showGuitarForm && (
+          <GuitarForm
+            onClose={() => setShowGuitarForm(false)}
+          />
         )}
     </main>
   );

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppState } from '@/hooks/useAppState';
+import { useAppState, syncGuitarToSupabase } from '@/hooks/useAppState';
+import { useToast } from '@/contexts/ToastContext';
 import { Guitar } from '@/types';
 import { X } from 'lucide-react';
 
@@ -12,6 +13,8 @@ interface GuitarFormProps {
 
 export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
   const { state, dispatch } = useAppState();
+  const { showToast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     maker: '',
     model: '',
@@ -31,37 +34,59 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
     }
   }, [guitarId, state.guitars]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.maker.trim() || !formData.model.trim()) {
-      alert('Please fill in maker and model fields');
+      showToast('Please fill in maker and model fields', 'error');
       return;
     }
 
-    const now = new Date();
-    
-    if (guitarId) {
-      // Update existing guitar
-      const existingGuitar = state.guitars.find(g => g.id === guitarId)!;
-      const updatedGuitar: Guitar = {
-        ...existingGuitar,
-        ...formData,
-        updatedAt: now,
-      };
-      dispatch({ type: 'UPDATE_GUITAR', payload: updatedGuitar });
-    } else {
-      // Add new guitar
-      const newGuitar: Guitar = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: now,
-        updatedAt: now,
-      };
-      dispatch({ type: 'ADD_GUITAR', payload: newGuitar });
+    setIsSubmitting(true);
+    try {
+      const now = new Date();
+      let guitarToSync: Guitar;
+
+      if (guitarId) {
+        // Update existing guitar
+        const existingGuitar = state.guitars.find(g => g.id === guitarId)!;
+        const updatedGuitar: Guitar = {
+          ...existingGuitar,
+          ...formData,
+          updatedAt: now,
+        };
+        guitarToSync = updatedGuitar;
+
+        // Optimistic update to localStorage
+        dispatch({ type: 'UPDATE_GUITAR', payload: updatedGuitar });
+      } else {
+        // Add new guitar
+        const newGuitar: Guitar = {
+          id: Date.now().toString(),
+          ...formData,
+          createdAt: now,
+          updatedAt: now,
+        };
+        guitarToSync = newGuitar;
+
+        // Optimistic update to localStorage
+        dispatch({ type: 'ADD_GUITAR', payload: newGuitar });
+      }
+
+      // Background sync to Supabase with error handling
+      const { error } = await syncGuitarToSupabase(guitarToSync);
+
+      if (error) {
+        console.error('Supabase sync error:', error);
+        showToast('Guitar saved locally, but failed to sync to cloud', 'warning');
+      } else {
+        showToast(guitarId ? 'Guitar updated successfully!' : 'Guitar added successfully!', 'success');
+      }
+
+      onClose();
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    onClose();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,14 +164,16 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
               type="button"
               onClick={onClose}
               className="btn btn-secondary"
+              disabled={isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
               className="btn btn-primary"
+              disabled={isSubmitting}
             >
-              {guitarId ? 'Update Guitar' : 'Add Guitar'}
+              {isSubmitting ? 'Saving...' : (guitarId ? 'Update Guitar' : 'Add Guitar')}
             </button>
           </div>
         </form>

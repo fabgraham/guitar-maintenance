@@ -9,7 +9,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { MaintenanceLogForm } from '@/components/MaintenanceLogForm';
 import { MaintenanceLogList } from '@/components/MaintenanceLogList';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { useAppState } from '@/hooks/useAppState';
+import { useAppState, deleteGuitarFromSupabase } from '@/hooks/useAppState';
+import { useToast } from '@/contexts/ToastContext';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
 import { getStatusColor, getStatusText } from '@/utils/maintenance';
 import { ArrowLeft, Calendar, Clock, Music, Plus, Settings, Trash2 } from 'lucide-react';
@@ -20,6 +21,7 @@ export default function GuitarDetail() {
   const params = useParams();
   const router = useRouter();
   const { state, dispatch } = useAppState();
+  const { showToast } = useToast();
   const [showLogForm, setShowLogForm] = useState(false);
   const [editingLog, setEditingLog] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -118,10 +120,24 @@ export default function GuitarDetail() {
             title="Delete Guitar"
             description="This will delete the guitar and all its maintenance logs. This action cannot be undone."
             confirmText="Delete"
-            onConfirm={() => {
+            onConfirm={async () => {
               setShowDeleteConfirm(false);
+
+              // Optimistic update to localStorage
               dispatch({ type: 'DELETE_GUITAR', payload: guitarId });
+
+              // Navigate immediately (optimistic)
               router.push('/');
+
+              // Background sync to Supabase with error handling
+              const { error } = await deleteGuitarFromSupabase(guitarId);
+
+              if (error) {
+                console.error('Supabase sync error:', error);
+                showToast('Guitar deleted locally, but failed to sync to cloud', 'warning');
+              } else {
+                showToast('Guitar deleted successfully!', 'success');
+              }
             }}
             onCancel={() => setShowDeleteConfirm(false)}
           />

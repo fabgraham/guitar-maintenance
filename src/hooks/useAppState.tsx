@@ -31,17 +31,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         guitars: [...state.guitars, action.payload],
         isLoading: false
       };
-      if (supabase) {
-        const g = action.payload;
-        supabase.from('guitars').upsert({
-          id: g.id,
-          maker: g.maker,
-          model: g.model,
-          string_specs: g.stringSpecs,
-          created_at: g.createdAt.toISOString(),
-          updated_at: g.updatedAt.toISOString()
-        });
-      }
       break;
     case 'UPDATE_GUITAR':
       newState = {
@@ -50,15 +39,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
           guitar.id === action.payload.id ? action.payload : guitar
         )
       };
-      if (supabase) {
-        const g = action.payload;
-        supabase.from('guitars').update({
-          maker: g.maker,
-          model: g.model,
-          string_specs: g.stringSpecs,
-          updated_at: g.updatedAt.toISOString()
-        }).eq('id', g.id);
-      }
       break;
     case 'DELETE_GUITAR':
       newState = {
@@ -66,27 +46,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
         guitars: state.guitars.filter(guitar => guitar.id !== action.payload),
         maintenanceLogs: state.maintenanceLogs.filter(log => log.guitarId !== action.payload)
       };
-      if (supabase) {
-        supabase.from('maintenance_logs').delete().eq('guitar_id', action.payload);
-        supabase.from('guitars').delete().eq('id', action.payload);
-      }
       break;
     case 'ADD_MAINTENANCE_LOG':
       newState = {
         ...state,
         maintenanceLogs: [...state.maintenanceLogs, action.payload]
       };
-      if (supabase) {
-        const m = action.payload;
-        supabase.from('maintenance_logs').upsert({
-          id: m.id,
-          guitar_id: m.guitarId,
-          maintenance_date: m.maintenanceDate.toISOString(),
-          type_of_work: m.typeOfWork,
-          notes: m.notes,
-          created_at: m.createdAt.toISOString()
-        });
-      }
       break;
     case 'UPDATE_MAINTENANCE_LOG':
       newState = {
@@ -95,24 +60,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
           log.id === action.payload.id ? action.payload : log
         )
       };
-      if (supabase) {
-        const m = action.payload;
-        supabase.from('maintenance_logs').update({
-          guitar_id: m.guitarId,
-          maintenance_date: m.maintenanceDate.toISOString(),
-          type_of_work: m.typeOfWork,
-          notes: m.notes
-        }).eq('id', m.id);
-      }
       break;
     case 'DELETE_MAINTENANCE_LOG':
       newState = {
         ...state,
         maintenanceLogs: state.maintenanceLogs.filter(log => log.id !== action.payload)
       };
-      if (supabase) {
-        supabase.from('maintenance_logs').delete().eq('id', action.payload);
-      }
       break;
     case 'LOAD_STATE':
       newState = { ...action.payload, isLoading: false };
@@ -124,6 +77,57 @@ function appReducer(state: AppState, action: AppAction): AppState {
   // Save to localStorage
   saveToStorage(newState);
   return newState;
+}
+
+// Supabase sync helper functions
+export async function syncGuitarToSupabase(guitar: Guitar): Promise<{ error: any }> {
+  if (!supabase) return { error: null };
+
+  const { error } = await supabase.from('guitars').upsert({
+    id: guitar.id,
+    maker: guitar.maker,
+    model: guitar.model,
+    string_specs: guitar.stringSpecs,
+    created_at: guitar.createdAt.toISOString(),
+    updated_at: guitar.updatedAt.toISOString()
+  });
+
+  return { error };
+}
+
+export async function syncMaintenanceLogToSupabase(log: MaintenanceLog): Promise<{ error: any }> {
+  if (!supabase) return { error: null };
+
+  const { error } = await supabase.from('maintenance_logs').upsert({
+    id: log.id,
+    guitar_id: log.guitarId,
+    maintenance_date: log.maintenanceDate.toISOString(),
+    type_of_work: log.typeOfWork,
+    notes: log.notes,
+    created_at: log.createdAt.toISOString()
+  });
+
+  return { error };
+}
+
+export async function deleteGuitarFromSupabase(guitarId: string): Promise<{ error: any }> {
+  if (!supabase) return { error: null };
+
+  // Delete associated maintenance logs first
+  await supabase.from('maintenance_logs').delete().eq('guitar_id', guitarId);
+
+  // Then delete the guitar
+  const { error } = await supabase.from('guitars').delete().eq('id', guitarId);
+
+  return { error };
+}
+
+export async function deleteMaintenanceLogFromSupabase(logId: string): Promise<{ error: any }> {
+  if (!supabase) return { error: null };
+
+  const { error } = await supabase.from('maintenance_logs').delete().eq('id', logId);
+
+  return { error };
 }
 
 const AppContext = createContext<{

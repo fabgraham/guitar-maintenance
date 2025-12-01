@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppState } from '@/hooks/useAppState';
+import { useAppState, syncMaintenanceLogToSupabase } from '@/hooks/useAppState';
+import { useToast } from '@/contexts/ToastContext';
 import { MaintenanceLog } from '@/types';
 import { X } from 'lucide-react';
 
@@ -13,6 +14,8 @@ interface MaintenanceLogFormProps {
 
 export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogFormProps) {
   const { state, dispatch } = useAppState();
+  const { showToast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     maintenanceDate: new Date().toISOString().split('T')[0],
     typeOfWork: '',
@@ -32,41 +35,63 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
     }
   }, [logId, state.maintenanceLogs]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.typeOfWork.trim()) {
-      alert('Please fill in the type of work');
+      showToast('Please fill in the type of work', 'error');
       return;
     }
 
-    const now = new Date();
-    const maintenanceDate = new Date(formData.maintenanceDate);
-    
-    if (logId) {
-      // Update existing log
-      const existingLog = state.maintenanceLogs.find(l => l.id === logId)!;
-      const updatedLog: MaintenanceLog = {
-        ...existingLog,
-        maintenanceDate,
-        typeOfWork: formData.typeOfWork,
-        notes: formData.notes,
-      };
-      dispatch({ type: 'UPDATE_MAINTENANCE_LOG', payload: updatedLog });
-    } else {
-      // Add new log
-      const newLog: MaintenanceLog = {
-        id: Date.now().toString(),
-        guitarId,
-        maintenanceDate,
-        typeOfWork: formData.typeOfWork,
-        notes: formData.notes,
-        createdAt: now,
-      };
-      dispatch({ type: 'ADD_MAINTENANCE_LOG', payload: newLog });
+    setIsSubmitting(true);
+    try {
+      const now = new Date();
+      const maintenanceDate = new Date(formData.maintenanceDate);
+      let logToSync: MaintenanceLog;
+
+      if (logId) {
+        // Update existing log
+        const existingLog = state.maintenanceLogs.find(l => l.id === logId)!;
+        const updatedLog: MaintenanceLog = {
+          ...existingLog,
+          maintenanceDate,
+          typeOfWork: formData.typeOfWork,
+          notes: formData.notes,
+        };
+        logToSync = updatedLog;
+
+        // Optimistic update to localStorage
+        dispatch({ type: 'UPDATE_MAINTENANCE_LOG', payload: updatedLog });
+      } else {
+        // Add new log
+        const newLog: MaintenanceLog = {
+          id: Date.now().toString(),
+          guitarId,
+          maintenanceDate,
+          typeOfWork: formData.typeOfWork,
+          notes: formData.notes,
+          createdAt: now,
+        };
+        logToSync = newLog;
+
+        // Optimistic update to localStorage
+        dispatch({ type: 'ADD_MAINTENANCE_LOG', payload: newLog });
+      }
+
+      // Background sync to Supabase with error handling
+      const { error } = await syncMaintenanceLogToSupabase(logToSync);
+
+      if (error) {
+        console.error('Supabase sync error:', error);
+        showToast('Maintenance log saved locally, but failed to sync to cloud', 'warning');
+      } else {
+        showToast(logId ? 'Maintenance log updated successfully!' : 'Maintenance log added successfully!', 'success');
+      }
+
+      onClose();
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    onClose();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -143,14 +168,16 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
               type="button"
               onClick={onClose}
               className="btn btn-secondary"
+              disabled={isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
               className="btn btn-primary"
+              disabled={isSubmitting}
             >
-              {logId ? 'Update' : 'Add'}
+              {isSubmitting ? 'Saving...' : (logId ? 'Update' : 'Add')}
             </button>
           </div>
         </form>
