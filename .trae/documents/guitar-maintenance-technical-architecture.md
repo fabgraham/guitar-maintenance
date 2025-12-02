@@ -16,30 +16,40 @@ graph TD
 ```
 
 ## 2. Technology Description
-- Frontend: Next.js 14 (App Router) + React 18 + Tailwind CSS 3
-- Initialization Tool: create-next-app
-- Styling: Tailwind CSS with ShadCN UI components
-- Icons: lucide-react
-- State Management: React Context API / Custom Hooks with localStorage persistence
-- Backend: None (client-side only application)
+
+* Frontend: Next.js 14 (App Router) + React 18 + Tailwind CSS 3
+
+* Initialization Tool: create-next-app
+
+* Styling: Tailwind CSS with ShadCN UI components
+
+* Icons: lucide-react
+
+* State Management: React Context API / Custom Hooks with localStorage persistence
+
+* Backend: None (client-side only application)
 
 ## 3. Route definitions
-| Route | Purpose |
-|-------|---------|
-| / | Dashboard page, displays maintenance status overview |
-| /inventory | Inventory management page for guitar CRUD operations |
-| /settings | Application settings and configuration |
-| /guitar/[id] | Individual guitar detail page with maintenance history |
+
+| Route         | Purpose                                                |
+| ------------- | ------------------------------------------------------ |
+| /             | Dashboard page, displays maintenance status overview   |
+| /inventory    | Inventory management page for guitar CRUD operations   |
+| /settings     | Application settings and configuration                 |
+| /guitar/\[id] | Individual guitar detail page with maintenance history |
 
 ## 4. API definitions
+
 No backend API required - all data management handled client-side through React Context and localStorage.
 
 ## 5. Server architecture diagram
+
 Not applicable - this is a client-side only application with no server components.
 
 ## 6. Data model
 
 ### 6.1 Data model definition
+
 ```mermaid
 erDiagram
   GUITAR ||--o{ MAINTENANCE_LOG : has
@@ -64,6 +74,7 @@ erDiagram
 ```
 
 ### 6.2 Data Definition Language
+
 Data structures for TypeScript interfaces:
 
 ```typescript
@@ -92,6 +103,7 @@ interface AppState {
 ```
 
 Initial data seed structure:
+
 ```javascript
 const initialGuitars = [
   {
@@ -115,3 +127,4 @@ const initialMaintenanceLogs = [
   // ... additional logs
 ];
 ```
+
