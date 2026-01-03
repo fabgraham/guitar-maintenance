@@ -24,18 +24,27 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
       <div className="flex items-start justify-between">
         <div className="flex items-start">
           <div>
-            <div className="flex items-center mb-1">
-              <h3 className="text-lg font-semibold text-gray-900 mr-3">
+            <div className="flex items-center mb-1 flex-wrap gap-2">
+              <h3 className="text-lg font-semibold text-gray-900">
                 {guitar.maker} {guitar.model}
               </h3>
               {guitar.status === 'urgent' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center', 'text-red-600 bg-red-100')}>Needs Maintenance</span>
+                <>
+                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[60px] justify-center md:hidden', 'text-red-600 bg-red-100')}>Urgent</span>
+                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center hidden md:inline-flex', 'text-red-600 bg-red-100')}>Needs Maintenance</span>
+                </>
               )}
               {guitar.status === 'warning' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center', 'text-orange-600 bg-orange-100')}>Due Soon</span>
+                <>
+                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[60px] justify-center md:hidden', 'text-orange-600 bg-orange-100')}>Due</span>
+                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center hidden md:inline-flex', 'text-orange-600 bg-orange-100')}>Due Soon</span>
+                </>
               )}
               {guitar.status === 'good' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center', 'text-green-600 bg-green-100')}>Recently Maintained</span>
+                <>
+                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[60px] justify-center md:hidden', 'text-green-600 bg-green-100')}>Good</span>
+                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center hidden md:inline-flex', 'text-green-600 bg-green-100')}>Recently Maintained</span>
+                </>
               )}
             </div>
             <p className="text-sm text-gray-600 mb-3">
