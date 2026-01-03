@@ -28,4 +28,5 @@ export interface GuitarWithStatus extends Guitar {
   lastMaintenanceDate?: Date;
   status: MaintenanceStatus;
   daysSinceMaintenance: number;
+  lastMaintenanceNotes?: string;
 }

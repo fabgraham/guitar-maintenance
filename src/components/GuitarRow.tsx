@@ -29,16 +29,18 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
                 {guitar.maker} {guitar.model}
               </h3>
               {guitar.status === 'urgent' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full', 'text-red-600 bg-red-100')}>Needs Maintenance</span>
+                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center', 'text-red-600 bg-red-100')}>Needs Maintenance</span>
               )}
               {guitar.status === 'warning' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full', 'text-orange-600 bg-orange-100')}>Due Soon</span>
+                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center', 'text-orange-600 bg-orange-100')}>Due Soon</span>
               )}
               {guitar.status === 'good' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full', 'text-green-600 bg-green-100')}>Recently Maintained</span>
+                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center', 'text-green-600 bg-green-100')}>Recently Maintained</span>
               )}
             </div>
-            <p className="text-sm text-gray-600 mb-3">{guitar.stringSpecs}</p>
+            <p className="text-sm text-gray-600 mb-3">
+              {guitar.lastMaintenanceNotes || guitar.stringSpecs}
+            </p>
 
             <div className="grid grid-cols-1 gap-3">
               <div className="flex items-center text-sm text-gray-600">

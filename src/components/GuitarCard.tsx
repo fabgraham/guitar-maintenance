@@ -37,7 +37,7 @@ export function GuitarCard({ guitar }: GuitarCardProps) {
               <h3 className="text-lg font-semibold text-gray-900">
                 {guitar.maker} {guitar.model}
               </h3>
-              <p className="text-sm text-gray-600">{guitar.stringSpecs}</p>
+              <p className="text-sm text-gray-600">{guitar.lastMaintenanceNotes || guitar.stringSpecs}</p>
             </div>
           </div>
           <span

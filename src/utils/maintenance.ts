@@ -9,6 +9,7 @@ export const calculateMaintenanceStatus = (
     .sort((a, b) => b.maintenanceDate.getTime() - a.maintenanceDate.getTime());
 
   const lastMaintenanceDate = guitarLogs[0]?.maintenanceDate;
+  const lastMaintenanceNotes = guitarLogs[0]?.notes;
   const today = new Date();
   let daysSinceMaintenance = 0;
   let status: MaintenanceStatus = 'good';
@@ -31,7 +32,8 @@ export const calculateMaintenanceStatus = (
     ...guitar,
     lastMaintenanceDate,
     status,
-    daysSinceMaintenance
+    daysSinceMaintenance,
+    lastMaintenanceNotes
   };
 };
 

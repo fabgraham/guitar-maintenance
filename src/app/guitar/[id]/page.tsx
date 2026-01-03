@@ -144,15 +144,25 @@ export default function GuitarDetail() {
 
           {guitarWithStatus.lastMaintenanceDate && (
             <div className="card mb-8">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
                   <h3 className="text-lg font-medium text-gray-900 mb-1">
                     Last Work Date
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 mb-2">
                     {formatDate(guitarWithStatus.lastMaintenanceDate)}{' '}
                     ({guitarWithStatus.daysSinceMaintenance} days ago)
                   </p>
+                  {guitarLogs[0]?.typeOfWork && (
+                    <p className="text-sm text-gray-700 mb-1">
+                      <span className="font-medium">Type of Work:</span> {guitarLogs[0].typeOfWork}
+                    </p>
+                  )}
+                  {guitarWithStatus.lastMaintenanceNotes && (
+                    <p className="text-sm text-gray-700">
+                      <span className="font-medium">Notes:</span> {guitarWithStatus.lastMaintenanceNotes}
+                    </p>
+                  )}
                 </div>
                 
               </div>

@@ -57,7 +57,70 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
 
   return (
     <div className="card">
-      <div className="overflow-x-auto">
+      {/* Mobile card view */}
+      <div className="md:hidden space-y-4">
+        {guitarsWithStatus.map((guitar) => (
+          <div key={guitar.id} className="border border-gray-200 rounded-lg p-4">
+            <div className="mb-3">
+              <div className="flex items-center mb-1">
+                <div className="text-base font-medium text-gray-900 mr-2">
+                  {guitar.maker} {guitar.model}
+                </div>
+                <span
+                  className={cn(
+                    'px-2 py-1 inline-flex text-xs font-medium rounded-full',
+                    getStatusColor(guitar.status)
+                  )}
+                >
+                  {getStatusText(guitar.status)}
+                </span>
+              </div>
+              <div className="text-sm text-gray-500">
+                Added {formatDate(guitar.createdAt)}
+              </div>
+            </div>
+            <div className="space-y-2 mb-3">
+              <div className="text-sm">
+                <span className="font-medium text-gray-700">String Specs:</span>{' '}
+                <span className="text-gray-900">{guitar.lastMaintenanceNotes || guitar.stringSpecs}</span>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium text-gray-700">Last Maintenance:</span>{' '}
+                {guitar.lastMaintenanceDate ? (
+                  <span className="text-gray-900">
+                    {formatDate(guitar.lastMaintenanceDate)} ({guitar.daysSinceMaintenance} days ago)
+                  </span>
+                ) : (
+                  <span className="text-gray-500">No history</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Link
+                href={`/guitar/${guitar.id}`}
+                className="text-primary-600 hover:text-primary-900 text-sm font-medium"
+              >
+                View
+              </Link>
+              <button
+                onClick={() => onEditClick(guitar.id)}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => openDeleteConfirm(guitar.id)}
+                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -92,7 +155,7 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {guitar.stringSpecs}
+                  {guitar.lastMaintenanceNotes || guitar.stringSpecs}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
