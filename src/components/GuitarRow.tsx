@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Calendar, Clock, ChevronRight } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { GuitarWithStatus } from '@/types';
-import { getStatusColor, getStatusText } from '@/utils/maintenance';
 import { cn } from '@/utils/cn';
 
 interface GuitarRowProps {
@@ -25,9 +24,9 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
         <div className="flex items-start">
           <div>
             <div className="flex items-center mb-1 flex-wrap gap-2">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <Link href={`/guitar/${guitar.id}`} className="text-lg font-semibold text-gray-900 hover:text-primary-600">
                 {guitar.maker} {guitar.model}
-              </h3>
+              </Link>
               {guitar.status === 'urgent' && (
                 <>
                   <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[60px] justify-center md:hidden', 'text-red-600 bg-red-100')}>Urgent</span>
@@ -64,9 +63,7 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
           </div>
         </div>
 
-        <Link href={`/guitar/${guitar.id}`} className="text-primary-600 hover:text-primary-700 inline-flex items-center">
-          View Details <ChevronRight className="w-4 h-4 ml-1" />
-        </Link>
+
       </div>
     </div>
   );

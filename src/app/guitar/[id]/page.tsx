@@ -82,12 +82,12 @@ export default function GuitarDetail() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <Link
-                href="/"
+              <button
+                onClick={() => router.back()}
                 className="text-gray-600 hover:text-gray-900 mr-4"
               >
                 <ArrowLeft className="w-5 h-5" />
-              </Link>
+              </button>
               <div className="flex items-center space-x-3">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
