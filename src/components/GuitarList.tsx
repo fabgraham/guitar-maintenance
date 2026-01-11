@@ -63,9 +63,12 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
           <div key={guitar.id} className="border border-gray-200 rounded-lg p-4">
             <div className="mb-3">
               <div className="flex items-center mb-1">
-                <div className="text-base font-medium text-gray-900 mr-2">
+                <Link
+                  href={`/guitar/${guitar.id}`}
+                  className="text-base font-medium text-gray-900 mr-2 hover:text-primary-600"
+                >
                   {guitar.maker} {guitar.model}
-                </div>
+                </Link>
                 <span
                   className={cn(
                     'px-2 py-1 inline-flex text-xs font-medium rounded-full',
@@ -96,12 +99,6 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Link
-                href={`/guitar/${guitar.id}`}
-                className="text-primary-600 hover:text-primary-900 text-sm font-medium"
-              >
-                View
-              </Link>
               <button
                 onClick={() => onEditClick(guitar.id)}
                 className="text-gray-600 hover:text-gray-900"
@@ -146,9 +143,12 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
               <tr key={guitar.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <div className="text-sm font-medium text-gray-900">
+                    <Link
+                      href={`/guitar/${guitar.id}`}
+                      className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                    >
                       {guitar.maker} {guitar.model}
-                    </div>
+                    </Link>
                     <div className="text-sm text-gray-500">
                       Added {formatDate(guitar.createdAt)}
                     </div>
@@ -181,12 +181,6 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                 </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div className="flex items-center space-x-2">
-                <Link
-                  href={`/guitar/${guitar.id}`}
-                  className="text-primary-600 hover:text-primary-900"
-                >
-                  View
-                </Link>
                 <button
                   onClick={() => onEditClick(guitar.id)}
                   className="text-gray-600 hover:text-gray-900"
