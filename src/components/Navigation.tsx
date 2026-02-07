@@ -85,10 +85,10 @@ export function Navigation() {
       >
         <Menu className="w-5 h-5" />
       </button>
-      <Link href="/" onClick={() => window.dispatchEvent(new Event('reset-dashboard'))} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
-        <span className="text-lg font-medium tracking-wide text-white">Guitar Maintenance</span>
+      <span className="text-lg font-medium tracking-wide text-white">Guitar Maintenance</span>
+      <Link href="/" onClick={() => window.dispatchEvent(new Event('reset-dashboard'))} className="p-2 rounded-md text-white hover:bg-white/10">
+        <Home className="w-5 h-5" />
       </Link>
-      <div className="w-5 h-5" />
     </div>
   );
 
