@@ -40,11 +40,13 @@ export function Navigation() {
       'hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 bg-primary-50 border-r border-primary-200',
       collapsed ? 'md:w-16' : 'md:w-64'
     )}>
-      <div className="h-16 flex items-center justify-between px-3 border-b border-primary-200">
-        <span className={cn('text-lg font-bold text-primary-900 tracking-wide', collapsed && 'hidden')}>Guitar Maintenance</span>
+      <div className="h-16 flex items-center justify-between px-3 bg-primary-500 border-b border-primary-600">
+        <Link href="/" onClick={() => window.dispatchEvent(new Event('reset-dashboard'))} className={cn('flex items-center gap-2 hover:opacity-80 transition-opacity', collapsed && 'hidden')}>
+          <span className="text-xl font-medium tracking-wide text-white">Guitar Maintenance</span>
+        </Link>
         <button
           aria-label="Toggle sidebar"
-          className="p-2 rounded-md text-primary-700 hover:bg-primary-100 transition-colors"
+          className="p-2 rounded-md text-white hover:bg-white/10 transition-colors"
           onClick={toggleCollapsed}
         >
           {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -75,15 +77,17 @@ export function Navigation() {
   );
 
   const MobileHeader = (
-    <div className="md:hidden fixed inset-x-0 top-0 h-12 bg-white border-b flex items-center justify-between px-3 z-40">
+    <div className="md:hidden fixed inset-x-0 top-0 h-12 bg-primary-500 flex items-center justify-between px-3 z-40">
       <button
         aria-label="Open sidebar"
-        className="p-2 rounded-md text-gray-700 hover:bg-gray-100"
+        className="p-2 rounded-md text-white hover:bg-white/10"
         onClick={() => setOpen(true)}
       >
         <Menu className="w-5 h-5" />
       </button>
-      <span className="text-base font-semibold text-gray-900">Guitar Maintenance</span>
+      <Link href="/" onClick={() => window.dispatchEvent(new Event('reset-dashboard'))} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+        <span className="text-lg font-medium tracking-wide text-white">Guitar Maintenance</span>
+      </Link>
       <div className="w-5 h-5" />
     </div>
   );
@@ -92,8 +96,7 @@ export function Navigation() {
     <div className="md:hidden fixed inset-0 z-50">
       <div className="absolute inset-0 bg-primary-900/20 backdrop-blur-sm" onClick={() => setOpen(false)} />
       <aside className="relative w-64 h-full bg-primary-50 shadow-2xl">
-        <div className="h-12 flex items-center justify-between px-3 border-b border-primary-200">
-          <span className="text-base font-bold text-primary-900">Menu</span>
+        <div className="h-12 flex items-center justify-end px-3 border-b border-primary-200">
           <button aria-label="Close sidebar" className="p-2 rounded-md text-primary-700 hover:bg-primary-100" onClick={() => setOpen(false)}>
             <X className="w-5 h-5" />
           </button>

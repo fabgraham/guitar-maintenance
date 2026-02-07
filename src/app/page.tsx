@@ -3,7 +3,7 @@ import { GuitarRow } from '@/components/GuitarRow';
 import { GuitarForm } from '@/components/GuitarForm';
 import { useAppState } from '@/hooks/useAppState';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 
 export default function Dashboard() {
@@ -11,7 +11,13 @@ export default function Dashboard() {
   const [sortBy, setSortBy] = useState<'status' | 'name'>('status');
   const [filter, setFilter] = useState<'all' | 'urgent' | 'warning' | 'good'>('all');
   const [showGuitarForm, setShowGuitarForm] = useState(false);
-  
+
+  useEffect(() => {
+    const reset = () => { setFilter('all'); setSortBy('status'); };
+    window.addEventListener('reset-dashboard', reset);
+    return () => window.removeEventListener('reset-dashboard', reset);
+  }, []);
+
   // Calculate maintenance status for all guitars
   const guitarsWithStatus = state.guitars.map(guitar =>
     calculateMaintenanceStatus(guitar, state.maintenanceLogs)
