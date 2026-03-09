@@ -8,12 +8,12 @@ import { Plus } from 'lucide-react';
 
 export default function Dashboard() {
   const { state } = useAppState();
-  const [sortBy, setSortBy] = useState<'status' | 'name'>('status');
+  const [sortBy, setSortBy] = useState<'older90' | 'recentlyUpdated' | 'name'>('recentlyUpdated');
   const [filter, setFilter] = useState<'all' | 'urgent' | 'warning' | 'good'>('all');
   const [showGuitarForm, setShowGuitarForm] = useState(false);
 
   useEffect(() => {
-    const reset = () => { setFilter('all'); setSortBy('status'); };
+    const reset = () => { setFilter('all'); setSortBy('recentlyUpdated'); };
     window.addEventListener('reset-dashboard', reset);
     return () => window.removeEventListener('reset-dashboard', reset);
   }, []);
@@ -23,17 +23,36 @@ export default function Dashboard() {
     calculateMaintenanceStatus(guitar, state.maintenanceLogs)
   );
 
-  // Filter based on selected status
   const filteredGuitars = guitarsWithStatus.filter(guitar =>
     filter === 'all' ? true : guitar.status === filter
   );
 
-  // Sort based on selection
   const sortedGuitars = [...filteredGuitars].sort((a, b) => {
-    if (sortBy === 'status') {
-      const statusPriority = { urgent: 0, warning: 1, good: 2 } as const;
-      return statusPriority[a.status] - statusPriority[b.status];
+    const aDays = a.lastMaintenanceDate
+      ? Math.floor((Date.now() - a.lastMaintenanceDate.getTime()) / (1000 * 60 * 60 * 24))
+      : -1;
+    const bDays = b.lastMaintenanceDate
+      ? Math.floor((Date.now() - b.lastMaintenanceDate.getTime()) / (1000 * 60 * 60 * 24))
+      : -1;
+
+    if (sortBy === 'older90') {
+      const aNeedsUpdate = aDays > 90 ? 0 : 1;
+      const bNeedsUpdate = bDays > 90 ? 0 : 1;
+      if (aNeedsUpdate !== bNeedsUpdate) return aNeedsUpdate - bNeedsUpdate;
+      if (aDays === -1 && bDays !== -1) return 1;
+      if (bDays === -1 && aDays !== -1) return -1;
+      return bDays - aDays;
     }
+
+    if (sortBy === 'recentlyUpdated') {
+      const aRecent = aDays >= 0 && aDays <= 90 ? 0 : 1;
+      const bRecent = bDays >= 0 && bDays <= 90 ? 0 : 1;
+      if (aRecent !== bRecent) return aRecent - bRecent;
+      if (aDays === -1 && bDays !== -1) return 1;
+      if (bDays === -1 && aDays !== -1) return -1;
+      return aDays - bDays;
+    }
+
     const aName = `${a.maker} ${a.model}`.toLowerCase();
     const bName = `${b.maker} ${b.model}`.toLowerCase();
     return aName.localeCompare(bName);
@@ -58,16 +77,19 @@ export default function Dashboard() {
                 Sort by:
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'status' | 'name')}
+                  onChange={(e) => setSortBy(e.target.value as 'older90' | 'recentlyUpdated' | 'name')}
                   className="ml-2 border border-gray-300 rounded-md px-2 py-1 text-sm bg-white"
                 >
-                  <option value="status">Status (Urgent first)</option>
+                  <option value="recentlyUpdated">Recently updated</option>
+                  <option value="older90">Older than 90 days</option>
                   <option value="name">Name (A–Z)</option>
                 </select>
               </div>
               {filter !== 'all' && (
                 <button
-                  onClick={() => setFilter('all')}
+                  onClick={() => {
+                    setFilter('all');
+                  }}
                   className="px-3 py-1 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors self-start sm:self-auto"
                 >
                   Show All
