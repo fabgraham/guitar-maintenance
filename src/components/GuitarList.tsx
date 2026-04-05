@@ -4,22 +4,15 @@ import { useAppState } from '@/hooks/useAppState';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
 import { getStatusColor, getStatusText } from '@/utils/maintenance';
 import { cn } from '@/utils/cn';
-import { Edit, Trash2, Music } from 'lucide-react';
-import Link from 'next/link';
-import React, { useState } from 'react';
-import { ConfirmDialog } from './ConfirmDialog';
+import { Music } from 'lucide-react';
+import React from 'react';
 
 interface GuitarListProps {
   onEditClick: (guitarId: string) => void;
 }
 
 export function GuitarList({ onEditClick }: GuitarListProps) {
-  const { state, dispatch } = useAppState();
-  const [confirmingGuitarId, setConfirmingGuitarId] = useState<string | null>(null);
-
-  const openDeleteConfirm = (guitarId: string) => {
-    setConfirmingGuitarId(guitarId);
-  };
+  const { state } = useAppState();
 
   const guitarsWithStatus = state.guitars.map(guitar =>
     calculateMaintenanceStatus(guitar, state.maintenanceLogs)
@@ -60,59 +53,28 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
       {/* Mobile card view */}
       <div className="md:hidden space-y-4">
         {guitarsWithStatus.map((guitar) => (
-          <div key={guitar.id} className="border border-gray-200 rounded-lg p-4">
-            <div className="mb-3">
-              <div className="flex items-center mb-1">
-                <Link
-                  href={`/guitar/${guitar.id}`}
-                  className="text-base font-medium text-gray-900 mr-2 hover:text-primary-600"
-                >
-                  {guitar.maker} {guitar.model}
-                </Link>
-                <span
-                  className={cn(
-                    'px-2 py-1 inline-flex text-xs font-medium rounded-full',
-                    getStatusColor(guitar.status)
-                  )}
-                >
-                  {getStatusText(guitar.status)}
-                </span>
-              </div>
-              <div className="text-sm text-gray-500">
-                Added {formatDate(guitar.createdAt)}
-              </div>
-            </div>
-            <div className="space-y-2 mb-3">
-              <div className="text-sm">
-                <span className="font-medium text-gray-700">Year:</span>{' '}
-                <span className="text-gray-900">{guitar.lastMaintenanceNotes || guitar.year}</span>
-              </div>
-              <div className="text-sm">
-                <span className="font-medium text-gray-700">Last Maintenance:</span>{' '}
-                {guitar.lastMaintenanceDate ? (
-                  <span className="text-gray-900">
-                    {formatDate(guitar.lastMaintenanceDate)} ({guitar.daysSinceMaintenance} days ago)
-                  </span>
-                ) : (
-                  <span className="text-gray-500">No history</span>
+          <button
+            key={guitar.id}
+            onClick={() => onEditClick(guitar.id)}
+            className="w-full text-left border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+          >
+            <div className="flex items-center mb-1">
+              <span className="text-base font-medium text-gray-900 mr-2">
+                {guitar.maker} {guitar.model}
+              </span>
+              <span
+                className={cn(
+                  'px-2 py-1 inline-flex text-xs font-medium rounded-full',
+                  getStatusColor(guitar.status)
                 )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => onEditClick(guitar.id)}
-                className="text-gray-600 hover:text-gray-900"
               >
-                <Edit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => openDeleteConfirm(guitar.id)}
-                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+                {getStatusText(guitar.status)}
+              </span>
             </div>
-          </div>
+            <div className="text-sm text-gray-500">
+              Added {formatDate(guitar.createdAt)}
+            </div>
+          </button>
         ))}
       </div>
 
@@ -125,37 +87,26 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                 Guitar
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                String Specs
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Last Maintenance
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {guitarsWithStatus.map((guitar) => (
-              <tr key={guitar.id} className="hover:bg-gray-50">
+              <tr
+                key={guitar.id}
+                onClick={() => onEditClick(guitar.id)}
+                className="hover:bg-gray-50 cursor-pointer"
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <Link
-                      href={`/guitar/${guitar.id}`}
-                      className="text-sm font-medium text-gray-900 hover:text-primary-600"
-                    >
+                    <span className="text-sm font-medium text-gray-900">
                       {guitar.maker} {guitar.model}
-                    </Link>
+                    </span>
                     <div className="text-sm text-gray-500">
                       Added {formatDate(guitar.createdAt)}
                     </div>
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {guitar.lastMaintenanceNotes || guitar.year}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
@@ -167,52 +118,11 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                     {getStatusText(guitar.status)}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {guitar.lastMaintenanceDate ? (
-                    <div>
-                      <div>{formatDate(guitar.lastMaintenanceDate)}</div>
-                      <div className="text-gray-500">
-                        {guitar.daysSinceMaintenance} days ago
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-gray-500">No history</span>
-                  )}
-                </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => onEditClick(guitar.id)}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => openDeleteConfirm(guitar.id)}
-                  className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-      <ConfirmDialog
-        isOpen={!!confirmingGuitarId}
-        title="Delete Guitar"
-        description="This will delete the guitar and all its maintenance logs. This action cannot be undone."
-        confirmText="Delete"
-        onConfirm={() => {
-          if (confirmingGuitarId) {
-            dispatch({ type: 'DELETE_GUITAR', payload: confirmingGuitarId });
-          }
-          setConfirmingGuitarId(null);
-        }}
-        onCancel={() => setConfirmingGuitarId(null)}
-      />
     </div>
   );
 }
