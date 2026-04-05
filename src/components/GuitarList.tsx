@@ -84,8 +84,8 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
             </div>
             <div className="space-y-2 mb-3">
               <div className="text-sm">
-                <span className="font-medium text-gray-700">String Specs:</span>{' '}
-                <span className="text-gray-900">{guitar.lastMaintenanceNotes || guitar.stringSpecs}</span>
+                <span className="font-medium text-gray-700">Year:</span>{' '}
+                <span className="text-gray-900">{guitar.lastMaintenanceNotes || guitar.year}</span>
               </div>
               <div className="text-sm">
                 <span className="font-medium text-gray-700">Last Maintenance:</span>{' '}
@@ -155,7 +155,7 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {guitar.lastMaintenanceNotes || guitar.stringSpecs}
+                  {guitar.lastMaintenanceNotes || guitar.year}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span

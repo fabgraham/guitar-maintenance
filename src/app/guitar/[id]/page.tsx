@@ -6,6 +6,7 @@ export const dynamicParams = true;
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { GuitarForm } from '@/components/GuitarForm';
 import { MaintenanceLogForm } from '@/components/MaintenanceLogForm';
 import { MaintenanceLogList } from '@/components/MaintenanceLogList';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -13,7 +14,7 @@ import { useAppState, deleteGuitarFromSupabase } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
 import { getStatusColor, getStatusText } from '@/utils/maintenance';
-import { ArrowLeft, Calendar, Clock, Music, Plus, Settings, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Music, Pencil, Plus, Settings, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/cn';
 
@@ -25,6 +26,7 @@ export default function GuitarDetail() {
   const [showLogForm, setShowLogForm] = useState(false);
   const [editingLog, setEditingLog] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const guitarId = params.id as string;
@@ -93,7 +95,7 @@ export default function GuitarDetail() {
                   <h2 className="text-2xl font-bold text-gray-900">
                     {guitar.maker} {guitar.model}
                   </h2>
-                  <p className="text-gray-600">{guitarLogs[0]?.notes || guitar.stringSpecs}</p>
+                  <p className="text-gray-600">{guitarLogs[0]?.notes || guitar.year}</p>
                 </div>
                 <span
                   className={cn(
@@ -107,6 +109,12 @@ export default function GuitarDetail() {
             </div>
             <div className="flex items-center space-x-3">
               <button
+                onClick={() => setShowEditForm(true)}
+                className="bg-primary-600 hover:bg-primary-700 text-white rounded-full p-2"
+              >
+                <Pencil className="w-5 h-5" />
+              </button>
+              <button
                 onClick={handleDeleteGuitar}
                 className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2"
               >
@@ -114,6 +122,10 @@ export default function GuitarDetail() {
               </button>
             </div>
           </div>
+
+          {showEditForm && (
+            <GuitarForm guitarId={guitarId} onClose={() => setShowEditForm(false)} />
+          )}
 
           <ConfirmDialog
             isOpen={showDeleteConfirm}

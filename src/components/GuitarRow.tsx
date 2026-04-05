@@ -19,14 +19,14 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
   };
 
   return (
-    <div className="card w-full">
+    <Link href={`/guitar/${guitar.id}`} className="card w-full block hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex items-start justify-between">
         <div className="flex items-start">
           <div>
             <div className="flex items-center mb-1 flex-wrap gap-2">
-              <Link href={`/guitar/${guitar.id}`} className="text-lg font-semibold text-gray-900 hover:text-primary-600">
+              <span className="text-lg font-semibold text-gray-900">
                 {guitar.maker} {guitar.model}
-              </Link>
+              </span>
               {guitar.status === 'urgent' && (
                 <>
                   <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[60px] justify-center md:hidden', 'text-red-600 bg-red-100')}>Urgent</span>
@@ -47,7 +47,7 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
               )}
             </div>
             <p className="text-sm text-gray-600 mb-3">
-              {guitar.lastMaintenanceNotes || guitar.stringSpecs}
+              {guitar.lastMaintenanceNotes || guitar.year}
             </p>
 
             <div className="grid grid-cols-1 gap-3">
@@ -65,6 +65,6 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
 
 
       </div>
-    </div>
+    </Link>
   );
 }

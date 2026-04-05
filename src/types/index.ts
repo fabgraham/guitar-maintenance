@@ -2,7 +2,7 @@ export interface Guitar {
   id: string;
   maker: string;
   model: string;
-  stringSpecs: string;
+  year: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -38,7 +38,7 @@ const makeGuitar = (
   id: string,
   maker: string,
   model: string,
-  stringSpecs: string,
+  year: string,
   lastTag: string
 ): Guitar => {
   const last = parseMonthYear(lastTag);
@@ -47,7 +47,7 @@ const makeGuitar = (
     id,
     maker,
     model,
-    stringSpecs,
+    year,
     createdAt: created,
     updatedAt: last,
   };
@@ -72,16 +72,16 @@ const makeLog = (
 };
 
 export const seedGuitars: Guitar[] = [
-  makeGuitar('1', 'Fender', 'Strat White', '009-046 Daddario (regular)', 'Sept/25'),
-  makeGuitar('2', 'Epiphone', 'Dave Grohl', '009-046 Daddario new (white pack)', 'June/25'),
-  makeGuitar('3', 'Fender', 'Strat Mike', '009-046 (Daddario)', 'June/25'),
-  makeGuitar('4', 'Fender', 'Telecaster', '009-046 (Daddario)', 'Sept/25'),
-  makeGuitar('5', 'Fender', 'Mustang', '009-046 String Joy (blue pack)', 'Nov/25'),
-  makeGuitar('6', 'Gibson', 'Les Paul Special', '009-046 String Joy (green pack)', 'Sept/25'),
-  makeGuitar('7', 'Fender', 'Jazzmaster', '009-046 Daddario new (white pack)', 'May/25'),
-  makeGuitar('8', 'Yamaha', 'Revstar', '009-046 (Daddario)', 'June/25'),
-  makeGuitar('9', 'Fender', 'Duo Sonic', '009-046 String Joy (blue pack)', 'Sept/25'),
-  makeGuitar('10', 'Faith', 'Neptune', 'Acoustic (012s inferred)', 'Dec/24'),
+  makeGuitar('1', 'Fender', 'Strat White', '', 'Sept/25'),
+  makeGuitar('2', 'Epiphone', 'Dave Grohl', '', 'June/25'),
+  makeGuitar('3', 'Fender', 'Strat Mike', '', 'June/25'),
+  makeGuitar('4', 'Fender', 'Telecaster', '', 'Sept/25'),
+  makeGuitar('5', 'Fender', 'Mustang', '', 'Nov/25'),
+  makeGuitar('6', 'Gibson', 'Les Paul Special', '', 'Sept/25'),
+  makeGuitar('7', 'Fender', 'Jazzmaster', '', 'May/25'),
+  makeGuitar('8', 'Yamaha', 'Revstar', '', 'June/25'),
+  makeGuitar('9', 'Fender', 'Duo Sonic', '', 'Sept/25'),
+  makeGuitar('10', 'Faith', 'Neptune', '', 'Dec/24'),
 ];
 
 export const seedMaintenanceLogs: MaintenanceLog[] = [

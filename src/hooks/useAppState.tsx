@@ -87,7 +87,7 @@ export async function syncGuitarToSupabase(guitar: Guitar): Promise<{ error: any
     id: guitar.id,
     maker: guitar.maker,
     model: guitar.model,
-    string_specs: guitar.stringSpecs,
+    year: guitar.year,
     created_at: guitar.createdAt.toISOString(),
     updated_at: guitar.updatedAt.toISOString()
   });
@@ -147,7 +147,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           id: row.id,
           maker: row.maker,
           model: row.model,
-          stringSpecs: row.string_specs || '',
+          year: row.year || '',
           createdAt: new Date(row.created_at),
           updatedAt: new Date(row.updated_at)
         }));
@@ -164,7 +164,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             id: g.id,
             maker: g.maker,
             model: g.model,
-            string_specs: g.stringSpecs,
+            year: g.year,
             created_at: g.createdAt.toISOString(),
             updated_at: g.updatedAt.toISOString()
           }));

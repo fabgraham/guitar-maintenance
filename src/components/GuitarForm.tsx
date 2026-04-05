@@ -18,7 +18,7 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
   const [formData, setFormData] = useState({
     maker: '',
     model: '',
-    stringSpecs: '',
+    year: '',
   });
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
         setFormData({
           maker: guitar.maker,
           model: guitar.model,
-          stringSpecs: guitar.stringSpecs,
+          year: guitar.year,
         });
       }
     }
@@ -145,17 +145,19 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
           </div>
 
           <div>
-            <label htmlFor="stringSpecs" className="block text-sm font-medium text-gray-700 mb-1">
-              String Specifications
+            <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">
+              Guitar Year
             </label>
             <input
               type="text"
-              id="stringSpecs"
-              name="stringSpecs"
-              value={formData.stringSpecs}
+              id="year"
+              name="year"
+              value={formData.year}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
-              placeholder="e.g., 009-046 Daddario (regular)"
+              placeholder="e.g., 2021"
+              maxLength={4}
+              pattern="\d{4}"
             />
           </div>
 
