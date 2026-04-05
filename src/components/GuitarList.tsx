@@ -5,6 +5,8 @@ import { calculateMaintenanceStatus } from '@/utils/maintenance';
 import { getStatusColor, getStatusText } from '@/utils/maintenance';
 import { cn } from '@/utils/cn';
 import { Music } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 interface GuitarListProps {
@@ -13,6 +15,7 @@ interface GuitarListProps {
 
 export function GuitarList({ onEditClick }: GuitarListProps) {
   const { state } = useAppState();
+  const router = useRouter();
 
   const guitarsWithStatus = state.guitars.map(guitar =>
     calculateMaintenanceStatus(guitar, state.maintenanceLogs)
@@ -53,10 +56,10 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
       {/* Mobile card view */}
       <div className="md:hidden space-y-4">
         {guitarsWithStatus.map((guitar) => (
-          <button
+          <Link
             key={guitar.id}
-            onClick={() => onEditClick(guitar.id)}
-            className="w-full text-left border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+            href={`/guitar/${guitar.id}`}
+            className="block border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center mb-1">
               <span className="text-base font-medium text-gray-900 mr-2">
@@ -74,7 +77,7 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
             <div className="text-sm text-gray-500">
               Added {formatDate(guitar.createdAt)}
             </div>
-          </button>
+          </Link>
         ))}
       </div>
 
@@ -95,7 +98,7 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
             {guitarsWithStatus.map((guitar) => (
               <tr
                 key={guitar.id}
-                onClick={() => onEditClick(guitar.id)}
+                onClick={() => router.push(`/guitar/${guitar.id}`)}
                 className="hover:bg-gray-50 cursor-pointer"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
