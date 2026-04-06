@@ -60,6 +60,7 @@ export function Navigation() {
             <Link
               key={item.href}
               href={item.href}
+              title={collapsed ? item.label : undefined}
               className={cn(
                 'group flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200',
                 isActive 

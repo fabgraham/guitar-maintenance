@@ -154,7 +154,7 @@ export default function GuitarDetail() {
             onCancel={() => setShowDeleteConfirm(false)}
           />
 
-          {guitarWithStatus.lastMaintenanceDate && (
+          {guitarWithStatus.lastMaintenanceDate ? (
             <div className="card mb-8">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -176,7 +176,20 @@ export default function GuitarDetail() {
                     </p>
                   )}
                 </div>
-                
+
+              </div>
+            </div>
+          ) : (
+            <div className="card mb-8">
+              <div className="text-center py-4">
+                <p className="text-gray-600 mb-3">No maintenance records yet</p>
+                <button
+                  onClick={() => setShowLogForm(true)}
+                  className="btn btn-primary inline-flex items-center"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Maintenance Log
+                </button>
               </div>
             </div>
           )}

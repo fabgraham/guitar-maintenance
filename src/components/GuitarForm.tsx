@@ -149,15 +149,15 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
               Guitar Year
             </label>
             <input
-              type="text"
+              type="number"
               id="year"
               name="year"
               value={formData.year}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
               placeholder="e.g., 2021"
-              maxLength={4}
-              pattern="\d{4}"
+              min={1900}
+              max={new Date().getFullYear()}
             />
           </div>
 

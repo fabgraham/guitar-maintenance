@@ -28,22 +28,13 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
                 {guitar.maker} {guitar.model}
               </span>
               {guitar.status === 'urgent' && (
-                <>
-                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[60px] justify-center md:hidden', 'text-red-600 bg-red-100')}>Urgent</span>
-                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center hidden md:inline-flex', 'text-red-600 bg-red-100')}>Needs Maintenance</span>
-                </>
+                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[100px] justify-center', 'text-red-600 bg-red-100')}>Needs Service</span>
               )}
               {guitar.status === 'warning' && (
-                <>
-                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[60px] justify-center md:hidden', 'text-orange-600 bg-orange-100')}>Due</span>
-                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center hidden md:inline-flex', 'text-orange-600 bg-orange-100')}>Due Soon</span>
-                </>
+                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[100px] justify-center', 'text-orange-600 bg-orange-100')}>Due Soon</span>
               )}
               {guitar.status === 'good' && (
-                <>
-                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[60px] justify-center md:hidden', 'text-green-600 bg-green-100')}>Good</span>
-                  <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[120px] justify-center hidden md:inline-flex', 'text-green-600 bg-green-100')}>Recently Maintained</span>
-                </>
+                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[100px] justify-center', 'text-green-600 bg-green-100')}>Maintained</span>
               )}
             </div>
             <p className="text-sm text-gray-600 mb-3">

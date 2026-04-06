@@ -184,26 +184,19 @@ export default function Settings() {
           <div className="card">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Application Statistics</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary-600">
                   {state.guitars.length}
                 </div>
                 <div className="text-sm text-gray-600">Guitars</div>
               </div>
-              
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary-600">
                   {state.maintenanceLogs.length}
                 </div>
                 <div className="text-sm text-gray-600">Maintenance Logs</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary-600">
-                  {state.guitars.length > 0 ? Math.round(state.maintenanceLogs.length / state.guitars.length * 10) / 10 : 0}
-                </div>
-                <div className="text-sm text-gray-600">Avg Logs per Guitar</div>
               </div>
             </div>
           </div>

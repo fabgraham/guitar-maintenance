@@ -29,6 +29,13 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
     }).format(date);
   };
 
+  const getLastMaintenanceDate = (guitarId: string) => {
+    const guitarLogs = state.maintenanceLogs
+      .filter(log => log.guitarId === guitarId)
+      .sort((a, b) => b.maintenanceDate.getTime() - a.maintenanceDate.getTime());
+    return guitarLogs[0]?.maintenanceDate;
+  };
+
   if (guitarsWithStatus.length === 0) {
     return (
       <div className="text-center py-12">
@@ -74,8 +81,11 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                 {getStatusText(guitar.status)}
               </span>
             </div>
-            <div className="text-sm text-gray-500">
-              Added {formatDate(guitar.createdAt)}
+            <div className="text-sm text-gray-500 mt-1">
+              {(() => {
+                const lastDate = getLastMaintenanceDate(guitar.id);
+                return lastDate ? `Last maintenance: ${formatDate(lastDate)}` : 'No maintenance records';
+              })()}
             </div>
           </Link>
         ))}
@@ -88,6 +98,9 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Guitar
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Last Maintenance
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
@@ -110,6 +123,12 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                       Added {formatDate(guitar.createdAt)}
                     </div>
                   </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  {(() => {
+                    const lastDate = getLastMaintenanceDate(guitar.id);
+                    return lastDate ? formatDate(lastDate) : '—';
+                  })()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
