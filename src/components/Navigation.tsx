@@ -51,18 +51,8 @@ export function Navigation() {
           borderBottom: '1px solid rgba(0,20,60,0.10)',
         }}
       >
-        {/* Branding */}
-        <Link
-          href="/"
-          onClick={() => window.dispatchEvent(new Event('reset-dashboard'))}
-          className="flex flex-col leading-none select-none"
-        >
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#181e2e', lineHeight: 1.2 }}>Guitar</span>
-          <span style={{ fontSize: 9, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Maintenance</span>
-        </Link>
-
-        {/* Icon nav */}
-        <nav className="flex items-center gap-1">
+        {/* Centered icon nav */}
+        <nav className="flex items-center justify-center gap-2 w-full">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -72,15 +62,15 @@ export function Navigation() {
                 href={item.href}
                 aria-label={item.label}
                 style={{
-                  width: 40, height: 40,
+                  width: 44, height: 44,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRadius: 10,
+                  borderRadius: 12,
                   color: isActive ? '#4d7cf6' : '#a0a8bc',
                   background: isActive ? 'rgba(77,124,246,0.12)' : 'transparent',
                   transition: 'color 0.15s, background 0.15s',
                 }}
               >
-                <Icon size={20} strokeWidth={1.5} />
+                <Icon size={22} strokeWidth={1.5} />
               </Link>
             );
           })}
