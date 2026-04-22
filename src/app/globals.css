@@ -31,13 +31,21 @@ body {
   font-family: 'Space Grotesk', sans-serif;
 }
 
-/* Sidebar layout — always offset since sidebar is always visible */
+/* Mobile: top bar offset, no sidebar */
 .content {
-  margin-left: 200px;
-  transition: margin-left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-top: 52px;
 }
-body[data-sidebar='collapsed'] .content {
-  margin-left: 56px;
+
+/* Desktop ≥ 640px: sidebar offset, no top padding */
+@media (min-width: 640px) {
+  .content {
+    padding-top: 0;
+    margin-left: 200px;
+    transition: margin-left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body[data-sidebar='collapsed'] .content {
+    margin-left: 56px;
+  }
 }
 
 @keyframes slide-in-right {

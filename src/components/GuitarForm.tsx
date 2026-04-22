@@ -16,8 +16,8 @@ const inputStyle: React.CSSProperties = {
   background: '#e8ecf2',
   border: '1px solid rgba(0,20,60,0.10)',
   borderRadius: 9,
-  padding: '9px 13px',
-  fontSize: 13,
+  padding: '11px 13px',
+  fontSize: 16,
   color: '#181e2e',
   outline: 'none',
   boxSizing: 'border-box',
@@ -25,7 +25,7 @@ const inputStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: 12,
+  fontSize: 14,
   fontWeight: 500,
   color: '#5c6680',
   marginBottom: 6,

@@ -9,7 +9,7 @@ import { cn } from '@/utils/cn';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/inventory', label: 'Inventory', icon: List },
+  { href: '/inventory', label: 'Collection', icon: List },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -42,16 +42,60 @@ export function Navigation() {
 
   return (
     <>
-      {/* Sidebar — always visible, collapses to 56px on small screens */}
+      {/* ── Mobile top bar (hidden on desktop ≥ 640px) ── */}
+      <header
+        className="flex min-[640px]:hidden items-center justify-between fixed top-0 inset-x-0 z-40 px-5"
+        style={{
+          height: 52,
+          background: '#e8ecf2',
+          borderBottom: '1px solid rgba(0,20,60,0.10)',
+        }}
+      >
+        {/* Branding */}
+        <Link
+          href="/"
+          onClick={() => window.dispatchEvent(new Event('reset-dashboard'))}
+          className="flex flex-col leading-none select-none"
+        >
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#181e2e', lineHeight: 1.2 }}>Guitar</span>
+          <span style={{ fontSize: 9, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Maintenance</span>
+        </Link>
+
+        {/* Icon nav */}
+        <nav className="flex items-center gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-label={item.label}
+                style={{
+                  width: 40, height: 40,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: 10,
+                  color: isActive ? '#4d7cf6' : '#a0a8bc',
+                  background: isActive ? 'rgba(77,124,246,0.12)' : 'transparent',
+                  transition: 'color 0.15s, background 0.15s',
+                }}
+              >
+                <Icon size={20} strokeWidth={1.5} />
+              </Link>
+            );
+          })}
+        </nav>
+      </header>
+
+      {/* ── Desktop sidebar (hidden on mobile < 640px) ── */}
       <aside
         style={{
           width: mounted ? (collapsed ? 56 : 200) : 200,
           transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
         }}
-        className="flex flex-col fixed inset-y-0 left-0 z-40 overflow-hidden"
+        className="hidden min-[640px]:flex flex-col fixed inset-y-0 left-0 z-40 overflow-hidden"
         aria-label="Sidebar"
       >
-        {/* Sidebar background */}
         <div className="flex flex-col h-full" style={{ background: '#e8ecf2', borderRight: '1px solid rgba(0,20,60,0.10)' }}>
           {/* Header */}
           <div className="flex items-center justify-between px-3 pt-[26px] pb-4">
@@ -79,14 +123,12 @@ export function Navigation() {
               }}
             >
               {collapsed ? (
-                /* hamburger when collapsed */
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <rect x="1" y="3" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
                   <rect x="1" y="6.4" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
                   <rect x="1" y="9.8" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
                 </svg>
               ) : (
-                /* X when expanded */
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="#a0a8bc" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
@@ -144,7 +186,6 @@ export function Navigation() {
           </div>
         </div>
       </aside>
-
     </>
   );
 }
