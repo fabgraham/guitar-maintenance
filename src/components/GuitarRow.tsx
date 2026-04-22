@@ -75,10 +75,10 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
 
       {/* Main content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 15, fontWeight: 500, color: '#181e2e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {guitar.maker} {guitar.model}
-          </span>
+        <span style={{ fontSize: 15, fontWeight: 500, color: '#181e2e', display: 'block', marginBottom: 4 }}>
+          {guitar.maker} {guitar.model}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{
             fontSize: 11,
             fontWeight: 600,
@@ -91,10 +91,10 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
           }}>
             {STATUS_LABELS[guitar.status]}
           </span>
+          <span style={{ fontSize: 12, color: '#a0a8bc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {guitar.lastMaintenanceNotes || guitar.year || ''}
+          </span>
         </div>
-        <p style={{ fontSize: 12, color: '#a0a8bc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {guitar.lastMaintenanceNotes || guitar.year || '—'}
-        </p>
       </div>
 
       {/* Right: date + days ago */}

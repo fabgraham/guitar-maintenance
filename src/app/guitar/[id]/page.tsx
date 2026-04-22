@@ -114,18 +114,9 @@ export default function GuitarDetail() {
           <p style={{ fontSize: 11, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 2 }}>
             {guitar.maker}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 500, color: '#181e2e', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {guitar.model}
-            </h1>
-            <span style={{
-              fontSize: 11, fontWeight: 600, letterSpacing: '0.02em',
-              color: colors.text, background: colors.bg,
-              borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap', flexShrink: 0,
-            }}>
-              {STATUS_LABELS[guitarWithStatus.status]}
-            </span>
-          </div>
+          <h1 style={{ fontSize: 22, fontWeight: 500, color: '#181e2e', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {guitar.model}
+          </h1>
         </div>
 
         {/* Action buttons */}

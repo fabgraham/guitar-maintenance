@@ -77,14 +77,9 @@ export default function Dashboard() {
     <main style={{ padding: 28, minHeight: '100vh' }}>
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 4 }}>
-            Overview
-          </p>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#181e2e', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-            Dashboard
-          </h1>
-        </div>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#181e2e', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+          Dashboard
+        </h1>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'older90' | 'recentlyUpdated' | 'name')}

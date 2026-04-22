@@ -28,14 +28,9 @@ export default function Inventory() {
     <main style={{ padding: 28, minHeight: '100vh' }}>
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 4 }}>
-            Collection
-          </p>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#181e2e', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-            Inventory
-          </h1>
-        </div>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#181e2e', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+          Collection
+        </h1>
         <button
           onClick={handleAddClick}
           style={{

@@ -16,6 +16,7 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
   const { dispatch } = useAppState();
   const { showToast } = useToast();
   const [confirmingLogId, setConfirmingLogId] = useState<string | null>(null);
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
@@ -50,6 +51,8 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {logs.map((log, i) => {
           const isLatest = i === 0;
+          const isExpanded = expandedLogId === log.id;
+
           return (
             <div key={log.id} style={{ display: 'flex', gap: 16, alignItems: 'flex-start', position: 'relative' }}>
               {/* Timeline node */}
@@ -65,56 +68,89 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                 alignItems: 'center',
                 justifyContent: 'center',
                 zIndex: 1,
+                marginTop: 2,
               }}>
                 <CalendarDays size={14} strokeWidth={1.5} color={isLatest ? '#fff' : '#a0a8bc'} />
               </div>
 
-              {/* Log card */}
-              <div style={{
-                flex: 1,
-                background: '#ffffff',
-                border: `1px solid ${isLatest ? 'rgba(77,124,246,0.33)' : 'rgba(0,20,60,0.08)'}`,
-                borderRadius: 11,
-                padding: '12px 15px',
-              }}>
-                {/* Card header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: log.notes ? 6 : 0 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#181e2e' }}>
+              {/* Log card — tap anywhere to expand actions */}
+              <div
+                onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                style={{
+                  flex: 1,
+                  background: '#ffffff',
+                  border: `1px solid ${isLatest ? 'rgba(77,124,246,0.33)' : 'rgba(0,20,60,0.08)'}`,
+                  borderRadius: 11,
+                  padding: '12px 15px',
+                  cursor: 'pointer',
+                  transition: 'background 0.12s',
+                  userSelect: 'none',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#f8f9fc'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#ffffff'; }}
+              >
+                {/* Card header row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#181e2e', flex: 1, minWidth: 0 }}>
                     {log.typeOfWork}
                   </span>
                   {isLatest && (
                     <span style={{
-                      fontSize: 9,
-                      fontWeight: 600,
-                      letterSpacing: '0.09em',
-                      textTransform: 'uppercase',
-                      color: '#4d7cf6',
-                      background: 'rgba(77,124,246,0.10)',
-                      borderRadius: 99,
-                      padding: '2px 7px',
+                      fontSize: 9, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase',
+                      color: '#4d7cf6', background: 'rgba(77,124,246,0.10)',
+                      borderRadius: 99, padding: '2px 7px', flexShrink: 0,
                     }}>
                       Latest
                     </span>
                   )}
-                  <span style={{ fontSize: 12, color: '#a0a8bc', marginLeft: 'auto' }}>
+                  <span style={{ fontSize: 12, color: '#a0a8bc', flexShrink: 0 }}>
                     {formatDate(log.maintenanceDate)}
                   </span>
-                  <button
-                    onClick={() => onEditClick(log.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#a0a8bc', display: 'flex' }}
-                  >
-                    <Edit size={13} />
-                  </button>
-                  <button
-                    onClick={() => setConfirmingLogId(log.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#a0a8bc', display: 'flex' }}
-                  >
-                    <Trash2 size={13} />
-                  </button>
                 </div>
 
                 {log.notes && (
-                  <p style={{ fontSize: 13, color: '#5c6680', margin: 0 }}>{log.notes}</p>
+                  <p style={{ fontSize: 13, color: '#5c6680', margin: '6px 0 0' }}>{log.notes}</p>
+                )}
+
+                {/* Expanded actions — revealed on tap */}
+                {isExpanded && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      marginTop: 12,
+                      paddingTop: 10,
+                      borderTop: '1px solid rgba(0,20,60,0.08)',
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => { setExpandedLogId(null); onEditClick(log.id); }}
+                      style={{
+                        flex: 1,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        background: '#e8ecf2', border: 'none', borderRadius: 8,
+                        padding: '9px 0', fontSize: 13, fontWeight: 500, color: '#5c6680',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Edit size={14} strokeWidth={1.5} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => { setExpandedLogId(null); setConfirmingLogId(log.id); }}
+                      style={{
+                        flex: 1,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        background: 'rgba(212,32,32,0.08)', border: 'none', borderRadius: 8,
+                        padding: '9px 0', fontSize: 13, fontWeight: 500, color: '#d42020',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Trash2 size={14} strokeWidth={1.5} />
+                      Delete
+                    </button>
+                  </div>
                 )}
               </div>
 
