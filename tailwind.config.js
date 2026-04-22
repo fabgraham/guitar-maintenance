@@ -7,7 +7,22 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Space Grotesk', 'sans-serif'],
+        mono: ['Space Mono', 'monospace'],
+      },
       colors: {
+        // Design token colors
+        surface: {
+          DEFAULT: '#ffffff',
+          2: '#e8ecf2',
+          3: '#d4dae8',
+        },
+        accent: {
+          DEFAULT: '#4d7cf6',
+          dim: 'rgba(77,124,246,0.10)',
+        },
+        // Keep primary for compatibility
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',

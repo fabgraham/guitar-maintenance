@@ -4,13 +4,24 @@ import { useState, useEffect } from 'react';
 import { useAppState, syncMaintenanceLogToSupabase } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { MaintenanceLog } from '@/types';
-import { X } from 'lucide-react';
 
 interface MaintenanceLogFormProps {
   guitarId: string;
   logId?: string | null;
   onClose: () => void;
 }
+
+const inputStyle: React.CSSProperties = {
+  background: '#e8ecf2',
+  border: '1px solid rgba(0,20,60,0.10)',
+  borderRadius: 9,
+  padding: '9px 13px',
+  fontSize: 13,
+  color: '#181e2e',
+  outline: 'none',
+  width: '100%',
+  boxSizing: 'border-box',
+};
 
 export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogFormProps) {
   const { state, dispatch } = useAppState();
@@ -37,7 +48,6 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.typeOfWork.trim()) {
       showToast('Please fill in the type of work', 'error');
       return;
@@ -50,42 +60,24 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
       let logToSync: MaintenanceLog;
 
       if (logId) {
-        // Update existing log
         const existingLog = state.maintenanceLogs.find(l => l.id === logId)!;
-        const updatedLog: MaintenanceLog = {
-          ...existingLog,
-          maintenanceDate,
-          typeOfWork: formData.typeOfWork,
-          notes: formData.notes,
-        };
+        const updatedLog: MaintenanceLog = { ...existingLog, maintenanceDate, typeOfWork: formData.typeOfWork, notes: formData.notes };
         logToSync = updatedLog;
-
-        // Optimistic update to localStorage
         dispatch({ type: 'UPDATE_MAINTENANCE_LOG', payload: updatedLog });
       } else {
-        // Add new log
         const newLog: MaintenanceLog = {
-          id: Date.now().toString(),
-          guitarId,
-          maintenanceDate,
-          typeOfWork: formData.typeOfWork,
-          notes: formData.notes,
-          createdAt: now,
+          id: Date.now().toString(), guitarId, maintenanceDate,
+          typeOfWork: formData.typeOfWork, notes: formData.notes, createdAt: now,
         };
         logToSync = newLog;
-
-        // Optimistic update to localStorage
         dispatch({ type: 'ADD_MAINTENANCE_LOG', payload: newLog });
       }
 
-      // Background sync to Supabase with error handling
       const { error } = await syncMaintenanceLogToSupabase(logToSync);
-
       if (error) {
-        console.error('Supabase sync error:', error);
         showToast('Maintenance log saved locally, but failed to sync to cloud', 'warning');
       } else {
-        showToast(logId ? 'Maintenance log updated successfully!' : 'Maintenance log added successfully!', 'success');
+        showToast(logId ? 'Maintenance log updated!' : 'Maintenance log added!', 'success');
       }
 
       onClose();
@@ -95,93 +87,82 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h3 className="text-lg font-medium text-gray-900">
-            {logId ? 'Edit Maintenance Item' : 'Add Maintenance Item'}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500"
-          >
-            <X className="w-6 h-6" />
-          </button>
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        background: '#ffffff',
+        border: '1px solid rgba(0,20,60,0.10)',
+        borderRadius: 12,
+        padding: 18,
+      }}
+    >
+      {/* First row: type + date */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+        <div style={{ flex: 1 }}>
+          <input
+            type="text"
+            name="typeOfWork"
+            value={formData.typeOfWork}
+            onChange={handleChange}
+            style={inputStyle}
+            placeholder="Type of work (e.g., String replacement)"
+            required
+          />
         </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label htmlFor="maintenanceDate" className="block text-sm font-medium text-gray-700 mb-1">
-              Maintenance Date *
-            </label>
-            <input
-              type="date"
-              id="maintenanceDate"
-              name="maintenanceDate"
-              value={formData.maintenanceDate}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="typeOfWork" className="block text-sm font-medium text-gray-700 mb-1">
-              Type of Work *
-            </label>
-            <input
-              type="text"
-              id="typeOfWork"
-              name="typeOfWork"
-              value={formData.typeOfWork}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
-              placeholder="e.g., String replacement, Setup, Cleaning"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
-              Notes
-            </label>
-            <textarea
-              id="notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
-              placeholder="Additional details about the maintenance..."
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-secondary"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Saving...' : (logId ? 'Update' : 'Add')}
-            </button>
-          </div>
-        </form>
+        <div style={{ width: 150 }}>
+          <input
+            type="date"
+            name="maintenanceDate"
+            value={formData.maintenanceDate}
+            onChange={handleChange}
+            style={inputStyle}
+            required
+          />
+        </div>
       </div>
-    </div>
+
+      {/* Notes */}
+      <div style={{ marginBottom: 14 }}>
+        <textarea
+          name="notes"
+          value={formData.notes}
+          onChange={handleChange}
+          rows={2}
+          style={{ ...inputStyle, resize: 'vertical' }}
+          placeholder="Notes (optional)"
+        />
+      </div>
+
+      {/* Buttons */}
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isSubmitting}
+          style={{
+            background: '#e8ecf2', color: '#5c6680', border: 'none',
+            borderRadius: 9, padding: '8px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={{
+            background: '#4d7cf6', color: '#fff', border: 'none',
+            borderRadius: 9, padding: '8px 14px', fontSize: 13, fontWeight: 600,
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            opacity: isSubmitting ? 0.7 : 1,
+          }}
+        >
+          {isSubmitting ? 'Saving…' : (logId ? 'Update' : 'Save')}
+        </button>
+      </div>
+    </form>
   );
 }

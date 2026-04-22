@@ -1,7 +1,7 @@
 'use client';
 
 import { MaintenanceLog } from '@/types';
-import { Edit, Trash2, Calendar, Wrench } from 'lucide-react';
+import { Edit, Trash2, CalendarDays } from 'lucide-react';
 import { useAppState, deleteMaintenanceLogFromSupabase } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { useState } from 'react';
@@ -17,95 +17,129 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
   const { showToast } = useToast();
   const [confirmingLogId, setConfirmingLogId] = useState<string | null>(null);
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
 
   if (logs.length === 0) {
     return (
-      <div className="card">
-        <div className="text-center py-8">
-          <Wrench className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No maintenance history
-          </h3>
-          <p className="text-gray-600">
-            Add your first maintenance log to start tracking this guitar&apos;s maintenance history.
-          </p>
-        </div>
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid rgba(0,20,60,0.08)',
+        borderRadius: 12,
+        padding: '28px 20px',
+        textAlign: 'center',
+      }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#181e2e', marginBottom: 6 }}>No maintenance history</p>
+        <p style={{ fontSize: 13, color: '#5c6680' }}>Add your first maintenance log to start tracking.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {logs.map((log) => (
-        <div key={log.id} className="card">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <Calendar className="w-5 h-5 text-gray-400 mt-1" />
+    <div style={{ position: 'relative' }}>
+      {/* Vertical timeline line */}
+      <div style={{
+        position: 'absolute',
+        left: 16,
+        top: 16,
+        bottom: 16,
+        width: 1,
+        background: 'rgba(0,20,60,0.14)',
+      }} />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {logs.map((log, i) => {
+          const isLatest = i === 0;
+          return (
+            <div key={log.id} style={{ display: 'flex', gap: 16, alignItems: 'flex-start', position: 'relative' }}>
+              {/* Timeline node */}
+              <div style={{
+                width: 33,
+                height: 33,
+                borderRadius: '50%',
+                flexShrink: 0,
+                background: isLatest ? '#4d7cf6' : '#e8ecf2',
+                border: `1px solid ${isLatest ? '#4d7cf6' : 'rgba(0,20,60,0.14)'}`,
+                boxShadow: isLatest ? '0 0 0 4px rgba(77,124,246,0.15)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1,
+              }}>
+                <CalendarDays size={14} strokeWidth={1.5} color={isLatest ? '#fff' : '#a0a8bc'} />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-1">
-                  <h4 className="text-lg font-medium text-gray-900">
+
+              {/* Log card */}
+              <div style={{
+                flex: 1,
+                background: '#ffffff',
+                border: `1px solid ${isLatest ? 'rgba(77,124,246,0.33)' : 'rgba(0,20,60,0.08)'}`,
+                borderRadius: 11,
+                padding: '12px 15px',
+              }}>
+                {/* Card header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: log.notes ? 6 : 0 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#181e2e' }}>
                     {log.typeOfWork}
-                  </h4>
-                  <span className="text-sm text-gray-500">
+                  </span>
+                  {isLatest && (
+                    <span style={{
+                      fontSize: 9,
+                      fontWeight: 600,
+                      letterSpacing: '0.09em',
+                      textTransform: 'uppercase',
+                      color: '#4d7cf6',
+                      background: 'rgba(77,124,246,0.10)',
+                      borderRadius: 99,
+                      padding: '2px 7px',
+                    }}>
+                      Latest
+                    </span>
+                  )}
+                  <span style={{ fontSize: 12, color: '#a0a8bc', marginLeft: 'auto' }}>
                     {formatDate(log.maintenanceDate)}
                   </span>
+                  <button
+                    onClick={() => onEditClick(log.id)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#a0a8bc', display: 'flex' }}
+                  >
+                    <Edit size={13} />
+                  </button>
+                  <button
+                    onClick={() => setConfirmingLogId(log.id)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#a0a8bc', display: 'flex' }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
+
                 {log.notes && (
-                  <p className="text-gray-600 mb-2">{log.notes}</p>
+                  <p style={{ fontSize: 13, color: '#5c6680', margin: 0 }}>{log.notes}</p>
                 )}
-                
               </div>
+
+              <ConfirmDialog
+                isOpen={confirmingLogId === log.id}
+                title="Delete Maintenance Entry"
+                description="This will delete the selected maintenance entry. This action cannot be undone."
+                confirmText="Delete"
+                onConfirm={async () => {
+                  const logIdToDelete = log.id;
+                  setConfirmingLogId(null);
+                  dispatch({ type: 'DELETE_MAINTENANCE_LOG', payload: logIdToDelete });
+                  const { error } = await deleteMaintenanceLogFromSupabase(logIdToDelete);
+                  if (error) {
+                    showToast('Maintenance log deleted locally, but failed to sync to cloud', 'warning');
+                  } else {
+                    showToast('Maintenance log deleted successfully!', 'success');
+                  }
+                }}
+                onCancel={() => setConfirmingLogId(null)}
+              />
             </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => onEditClick(log.id)}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setConfirmingLogId(log.id)}
-                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-          <ConfirmDialog
-            isOpen={confirmingLogId === log.id}
-            title="Delete Maintenance Item"
-            description="This will delete the selected maintenance entry. This action cannot be undone."
-            confirmText="Delete"
-            onConfirm={async () => {
-              const logIdToDelete = log.id;
-              setConfirmingLogId(null);
-
-              // Optimistic update to localStorage
-              dispatch({ type: 'DELETE_MAINTENANCE_LOG', payload: logIdToDelete });
-
-              // Background sync to Supabase with error handling
-              const { error } = await deleteMaintenanceLogFromSupabase(logIdToDelete);
-
-              if (error) {
-                console.error('Supabase sync error:', error);
-                showToast('Maintenance log deleted locally, but failed to sync to cloud', 'warning');
-              } else {
-                showToast('Maintenance log deleted successfully!', 'success');
-              }
-            }}
-            onCancel={() => setConfirmingLogId(null)}
-          />
-        </div>
-      ))}
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -1,61 +1,115 @@
 'use client';
 
 import Link from 'next/link';
-import { Clock } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { GuitarWithStatus } from '@/types';
-import { cn } from '@/utils/cn';
 
 interface GuitarRowProps {
   guitar: GuitarWithStatus;
 }
 
+const STATUS_COLORS = {
+  good: { text: '#16a34a', bg: 'rgba(22,163,74,0.10)' },
+  warning: { text: '#c47a00', bg: 'rgba(196,122,0,0.10)' },
+  urgent: { text: '#d42020', bg: 'rgba(212,32,32,0.10)' },
+};
+
+const STATUS_LABELS = {
+  good: 'Maintained',
+  warning: 'Due Soon',
+  urgent: 'Needs Service',
+};
+
 export function GuitarRow({ guitar }: GuitarRowProps) {
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
+  const colors = STATUS_COLORS[guitar.status];
+
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
 
   return (
-    <Link href={`/guitar/${guitar.id}`} className="card w-full block hover:shadow-md transition-shadow cursor-pointer">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start">
-          <div>
-            <div className="flex items-center mb-1 flex-wrap gap-2">
-              <span className="text-lg font-semibold text-gray-900">
-                {guitar.maker} {guitar.model}
-              </span>
-              {guitar.status === 'urgent' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[100px] justify-center', 'text-red-600 bg-red-100')}>Needs Service</span>
-              )}
-              {guitar.status === 'warning' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[100px] justify-center', 'text-orange-600 bg-orange-100')}>Due Soon</span>
-              )}
-              {guitar.status === 'good' && (
-                <span className={cn('px-2 py-1 inline-flex text-xs font-medium rounded-full min-w-[100px] justify-center', 'text-green-600 bg-green-100')}>Maintained</span>
-              )}
-            </div>
-            <p className="text-sm text-gray-600 mb-3">
-              {guitar.lastMaintenanceNotes || guitar.year}
-            </p>
+    <Link
+      href={`/guitar/${guitar.id}`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        background: '#ffffff',
+        border: '1px solid rgba(0,20,60,0.08)',
+        borderRadius: 14,
+        padding: '18px 20px',
+        gap: 16,
+        textDecoration: 'none',
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'background 0.13s, border-color 0.13s',
+      }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.background = '#e8ecf2';
+        el.style.borderColor = 'rgba(0,20,60,0.14)';
+        const bar = el.querySelector('[data-accent-bar]') as HTMLElement;
+        if (bar) bar.style.opacity = '1';
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.background = '#ffffff';
+        el.style.borderColor = 'rgba(0,20,60,0.08)';
+        const bar = el.querySelector('[data-accent-bar]') as HTMLElement;
+        if (bar) bar.style.opacity = '0.4';
+      }}
+    >
+      {/* Left accent bar */}
+      <div
+        data-accent-bar
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: '20%',
+          bottom: '20%',
+          width: 2,
+          background: colors.text,
+          borderRadius: '0 2px 2px 0',
+          opacity: 0.4,
+          transition: 'opacity 0.13s',
+        }}
+      />
 
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex items-center text-sm text-gray-600">
-                <Clock className="w-4 h-4 mr-2" />
-                {guitar.lastMaintenanceDate ? (
-                  <span><span className="font-medium">Last work date:</span> {formatDate(guitar.lastMaintenanceDate)} ({guitar.daysSinceMaintenance} days)</span>
-                ) : (
-                  <span>No maintenance history</span>
-                )}
-              </div>
-            </div>
-          </div>
+      {/* Main content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 15, fontWeight: 500, color: '#181e2e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {guitar.maker} {guitar.model}
+          </span>
+          <span style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.02em',
+            color: colors.text,
+            background: colors.bg,
+            borderRadius: 99,
+            padding: '2px 8px',
+            whiteSpace: 'nowrap',
+          }}>
+            {STATUS_LABELS[guitar.status]}
+          </span>
         </div>
-
-
+        <p style={{ fontSize: 12, color: '#a0a8bc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {guitar.lastMaintenanceNotes || guitar.year || '—'}
+        </p>
       </div>
+
+      {/* Right: date + days ago */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, flexShrink: 0 }}>
+        {guitar.lastMaintenanceDate ? (
+          <>
+            <span style={{ fontSize: 12, color: '#a0a8bc' }}>{formatDate(guitar.lastMaintenanceDate)}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: colors.text }}>{guitar.daysSinceMaintenance}d ago</span>
+          </>
+        ) : (
+          <span style={{ fontSize: 12, color: '#a0a8bc' }}>No history</span>
+        )}
+      </div>
+
+      <ChevronRight size={16} style={{ color: '#a0a8bc', flexShrink: 0 }} />
     </Link>
   );
 }

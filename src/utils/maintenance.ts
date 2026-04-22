@@ -53,11 +53,11 @@ export const getStatusColor = (status: MaintenanceStatus): string => {
 export const getStatusText = (status: MaintenanceStatus): string => {
   switch (status) {
     case 'urgent':
-      return 'Needs Maintenance';
+      return 'Needs Service';
     case 'warning':
       return 'Due Soon';
     case 'good':
-      return 'Recently Maintained';
+      return 'Maintained';
     default:
       return 'Unknown';
   }

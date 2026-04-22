@@ -3,11 +3,9 @@
 import { useState } from 'react';
 import { GuitarForm } from '@/components/GuitarForm';
 import { GuitarList } from '@/components/GuitarList';
-import { useAppState } from '@/hooks/useAppState';
 import { Plus } from 'lucide-react';
 
 export default function Inventory() {
-  const { state } = useAppState();
   const [showForm, setShowForm] = useState(false);
   const [editingGuitar, setEditingGuitar] = useState<string | null>(null);
 
@@ -27,33 +25,47 @@ export default function Inventory() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Inventory</h2>
-              <p className="mt-1 text-sm text-gray-600">
-                My current guitars
-              </p>
-            </div>
-            <button
-              onClick={handleAddClick}
-              className="btn btn-primary inline-flex items-center"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Guitar
-            </button>
-          </div>
+    <main style={{ padding: 28, minHeight: '100vh' }}>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 4 }}>
+            Collection
+          </p>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#181e2e', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            Inventory
+          </h1>
         </div>
+        <button
+          onClick={handleAddClick}
+          style={{
+            background: '#4d7cf6',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 10,
+            padding: '9px 16px',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            marginTop: 4,
+          }}
+        >
+          <Plus size={14} />
+          Add Guitar
+        </button>
+      </div>
 
-        {showForm ? (
-          <GuitarForm
-            guitarId={editingGuitar}
-            onClose={handleFormClose}
-          />
-        ) : (
-          <GuitarList onEditClick={handleEditClick} />
-        )}
+      <GuitarList onEditClick={handleEditClick} />
+
+      {showForm && (
+        <GuitarForm
+          guitarId={editingGuitar}
+          onClose={handleFormClose}
+        />
+      )}
     </main>
   );
 }

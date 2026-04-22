@@ -1,10 +1,21 @@
-import { Inter } from 'next/font/google'
+import { Space_Grotesk, Space_Mono } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/hooks/useAppState'
 import { Navigation } from '@/components/Navigation'
 import { ToastProvider } from '@/contexts/ToastContext'
 
-const inter = Inter({ subsets: ['latin'] })
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+})
+
+const spaceMono = Space_Mono({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-space-mono',
+  display: 'swap',
+})
 
 export default function RootLayout({
   children,
@@ -13,14 +24,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${spaceGrotesk.variable} ${spaceMono.variable} font-sans`}>
         <ToastProvider>
           <AppProvider>
-            <div className="min-h-screen bg-gray-50">
-              <Navigation />
-              <div className="content pt-12 md:pt-0">
-                {children}
-              </div>
+            <Navigation />
+            <div className="content">
+              {children}
             </div>
           </AppProvider>
         </ToastProvider>

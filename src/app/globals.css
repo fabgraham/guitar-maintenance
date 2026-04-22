@@ -3,56 +3,41 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface-2: #e8ecf2;
+  --surface-3: #d4dae8;
+  --border: rgba(0, 20, 60, 0.08);
+  --border-strong: rgba(0, 20, 60, 0.14);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  --text-primary: #181e2e;
+  --text-secondary: #5c6680;
+  --text-muted: #a0a8bc;
+
+  --accent: #4d7cf6;
+  --accent-dim: rgba(77, 124, 246, 0.1);
+
+  --status-good: #16a34a;
+  --status-good-bg: rgba(22, 163, 74, 0.10);
+  --status-warning: #c47a00;
+  --status-warning-bg: rgba(196, 122, 0, 0.10);
+  --status-urgent: #d42020;
+  --status-urgent-bg: rgba(212, 32, 32, 0.10);
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', sans-serif;
 }
 
-.card {
-  @apply bg-white rounded-lg shadow-md border border-gray-200 p-6;
+/* Sidebar layout — always offset since sidebar is always visible */
+.content {
+  margin-left: 200px;
+  transition: margin-left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-.btn {
-  @apply px-4 py-2 rounded-md font-medium transition-colors duration-200;
-}
-
-.btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700;
-}
-
-.btn-secondary {
-  @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
-}
-
-.btn-danger {
-  @apply bg-red-600 text-white hover:bg-red-700;
-}
-
-@media (min-width: 768px) {
-  .content {
-    margin-left: 16rem;
-  }
-  body[data-sidebar='collapsed'] .content {
-    margin-left: 4rem;
-  }
+body[data-sidebar='collapsed'] .content {
+  margin-left: 56px;
 }
 
 @keyframes slide-in-right {

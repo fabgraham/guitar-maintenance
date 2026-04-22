@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, List, Settings, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, List, Settings } from 'lucide-react';
+import { useAppState } from '@/hooks/useAppState';
 import { cn } from '@/utils/cn';
 
 const navItems = [
@@ -14,12 +15,14 @@ const navItems = [
 
 export function Navigation() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const { state } = useAppState();
   const [collapsed, setCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     try {
-      const stored = localStorage.getItem('sidebar-collapsed');
+      const stored = localStorage.getItem('sb-collapsed');
       const isCollapsed = stored === 'true';
       setCollapsed(isCollapsed);
       document.body.dataset.sidebar = isCollapsed ? 'collapsed' : 'expanded';
@@ -31,108 +34,117 @@ export function Navigation() {
     setCollapsed(next);
     document.body.dataset.sidebar = next ? 'collapsed' : 'expanded';
     try {
-      localStorage.setItem('sidebar-collapsed', String(next));
+      localStorage.setItem('sb-collapsed', String(next));
     } catch {}
   };
 
-  const Sidebar = (
-    <aside className={cn(
-      'hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 bg-primary-50 border-r border-primary-200',
-      collapsed ? 'md:w-16' : 'md:w-64'
-    )}>
-      <div className="h-16 flex items-center justify-between px-3 bg-primary-500 border-b border-primary-600">
-        <Link href="/" onClick={() => window.dispatchEvent(new Event('reset-dashboard'))} className={cn('flex items-center gap-2 hover:opacity-80 transition-opacity', collapsed && 'hidden')}>
-          <span className="text-xl font-medium tracking-wide text-white">Guitar Maintenance</span>
-        </Link>
-        <button
-          aria-label="Toggle sidebar"
-          className="p-2 rounded-md text-white hover:bg-white/10 transition-colors"
-          onClick={toggleCollapsed}
-        >
-          {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-        </button>
-      </div>
-      <nav className="flex-1 px-2 py-4 space-y-1">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                'group flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200',
-                isActive 
-                  ? 'bg-primary-100 text-primary-900 shadow-sm ring-1 ring-primary-200' 
-                  : 'text-primary-700 hover:bg-primary-100 hover:text-primary-900'
-              )}
-            >
-              <Icon className={cn('w-5 h-5', collapsed ? '' : 'mr-3', isActive ? 'text-primary-700' : 'text-primary-500 group-hover:text-primary-700')} />
-              {!collapsed && item.label}
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
-  );
-
-  const MobileHeader = (
-    <div className="md:hidden fixed inset-x-0 top-0 h-12 bg-primary-500 flex items-center justify-between px-3 z-40">
-      <button
-        aria-label="Open sidebar"
-        className="p-2 rounded-md text-white hover:bg-white/10"
-        onClick={() => setOpen(true)}
-      >
-        <Menu className="w-5 h-5" />
-      </button>
-      <span className="text-lg font-medium tracking-wide text-white">Guitar Maintenance</span>
-      <Link href="/" onClick={() => window.dispatchEvent(new Event('reset-dashboard'))} className="p-2 rounded-md text-white hover:bg-white/10">
-        <Home className="w-5 h-5" />
-      </Link>
-    </div>
-  );
-
-  const MobileSheet = open ? (
-    <div className="md:hidden fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-primary-900/20 backdrop-blur-sm" onClick={() => setOpen(false)} />
-      <aside className="relative w-64 h-full bg-primary-50 shadow-2xl">
-        <div className="h-12 flex items-center justify-end px-3 border-b border-primary-200">
-          <button aria-label="Close sidebar" className="p-2 rounded-md text-primary-700 hover:bg-primary-100" onClick={() => setOpen(false)}>
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <nav className="px-2 py-3 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  'group flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200',
-                  isActive 
-                    ? 'bg-primary-100 text-primary-900 shadow-sm ring-1 ring-primary-200' 
-                    : 'text-primary-700 hover:bg-primary-100 hover:text-primary-900'
-                )}
-              >
-                <Icon className="w-5 h-5 mr-3 text-primary-500 group-hover:text-primary-700" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </aside>
-    </div>
-  ) : null;
+  const guitarCount = state.guitars.length;
 
   return (
     <>
-      {Sidebar}
-      {MobileHeader}
-      {MobileSheet}
+      {/* Sidebar — always visible, collapses to 56px on small screens */}
+      <aside
+        style={{
+          width: mounted ? (collapsed ? 56 : 200) : 200,
+          transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
+        }}
+        className="flex flex-col fixed inset-y-0 left-0 z-40 overflow-hidden"
+        aria-label="Sidebar"
+      >
+        {/* Sidebar background */}
+        <div className="flex flex-col h-full" style={{ background: '#e8ecf2', borderRight: '1px solid rgba(0,20,60,0.10)' }}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-3 pt-[26px] pb-4">
+            {!collapsed && (
+              <Link
+                href="/"
+                onClick={() => window.dispatchEvent(new Event('reset-dashboard'))}
+                className="flex flex-col leading-none select-none hover:opacity-75 transition-opacity"
+              >
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#181e2e', lineHeight: 1.2 }}>Guitar</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Maintenance</span>
+              </Link>
+            )}
+            <button
+              aria-label="Toggle sidebar"
+              onClick={toggleCollapsed}
+              className={cn(
+                'flex items-center justify-center rounded-lg transition-colors hover:bg-black/5',
+                collapsed ? 'mx-auto' : 'ml-auto'
+              )}
+              style={{
+                width: 28, height: 28, flexShrink: 0,
+                border: '1px solid rgba(0,20,60,0.10)',
+                background: 'rgba(255,255,255,0.5)',
+              }}
+            >
+              {collapsed ? (
+                /* hamburger when collapsed */
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <rect x="1" y="3" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
+                  <rect x="1" y="6.4" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
+                  <rect x="1" y="9.8" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
+                </svg>
+              ) : (
+                /* X when expanded */
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="#a0a8bc" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* Nav items */}
+          <nav className="flex-1 px-2 space-y-0.5">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={collapsed ? item.label : undefined}
+                  className={cn(
+                    'flex items-center rounded-[9px] transition-colors',
+                    collapsed ? 'justify-center' : 'gap-3',
+                    isActive ? 'text-[#4d7cf6]' : 'text-[#a0a8bc] hover:text-[#5c6680]'
+                  )}
+                  style={{
+                    padding: collapsed ? '11px 0' : '9px 12px',
+                    background: isActive ? 'rgba(77,124,246,0.12)' : 'transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  }}
+                >
+                  <Icon size={18} strokeWidth={1.5} style={{ flexShrink: 0 }} />
+                  {!collapsed && (
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>{item.label}</span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Footer */}
+          <div
+            className="px-3 py-3.5"
+            style={{ borderTop: '1px solid rgba(0,20,60,0.10)', fontSize: 11, color: '#a0a8bc' }}
+          >
+            {collapsed ? (
+              <span style={{ display: 'flex', justifyContent: 'center' }}>
+                <List size={13} strokeWidth={1.5} />
+              </span>
+            ) : (
+              <span>{guitarCount} guitar{guitarCount !== 1 ? 's' : ''}</span>
+            )}
+          </div>
+        </div>
+      </aside>
+
     </>
   );
 }
