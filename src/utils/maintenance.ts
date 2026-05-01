@@ -12,16 +12,16 @@ export const calculateMaintenanceStatus = (
   const lastMaintenanceNotes = guitarLogs[0]?.notes;
   const today = new Date();
   let daysSinceMaintenance = 0;
-  let status: MaintenanceStatus = 'good';
+  let status: MaintenanceStatus = 'urgent';
 
   if (lastMaintenanceDate) {
     daysSinceMaintenance = Math.floor(
       (today.getTime() - lastMaintenanceDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    if (daysSinceMaintenance > 180) {
+    if (daysSinceMaintenance > 120) {
       status = 'urgent';
-    } else if (daysSinceMaintenance > 90) {
+    } else if (daysSinceMaintenance > 60) {
       status = 'warning';
     } else {
       status = 'good';

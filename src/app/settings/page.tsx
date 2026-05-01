@@ -212,9 +212,9 @@ export default function Settings() {
                 The application uses color-coded status indicators:
               </p>
               <ul className="list-disc list-inside space-y-1 ml-4">
-                <li><span className="text-red-600 font-medium">Red</span>: Needs maintenance (&gt;6 months)</li>
-                <li><span className="text-yellow-600 font-medium">Yellow</span>: Due soon (3-6 months)</li>
-                <li><span className="text-green-600 font-medium">Green</span>: Recently maintained (&lt;3 months)</li>
+                <li><span className="text-red-600 font-medium">Red</span>: Needs maintenance (&gt; 4 months)</li>
+                <li><span className="text-yellow-600 font-medium">Yellow</span>: Due soon (2–4 months)</li>
+                <li><span className="text-green-600 font-medium">Green</span>: Recently maintained (&lt; 2 months)</li>
               </ul>
               <p>
                 All data is stored locally in your browser using localStorage.
