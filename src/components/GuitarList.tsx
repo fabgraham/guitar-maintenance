@@ -2,7 +2,6 @@
 
 import { useAppState } from '@/hooks/useAppState';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
-import { ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface GuitarListProps {
@@ -20,6 +19,8 @@ const STATUS_LABELS = {
   warning: 'Due Soon',
   urgent: 'Needs Service',
 };
+
+const GRID = '1.2fr 140px 130px';
 
 export function GuitarList({ onEditClick }: GuitarListProps) {
   const { state } = useAppState();
@@ -73,8 +74,8 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
 
   return (
     <>
-      {/* Mobile: card list (same style as Dashboard GuitarRow) */}
-      <div className="min-[600px]:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Mobile: card list */}
+      <div className="flex min-[640px]:hidden flex-col" style={{ gap: 8 }}>
         {guitarsWithStatus.map((guitar) => {
           const colors = STATUS_COLORS[guitar.status];
           const lastDate = getLastMaintenanceDate(guitar.id);
@@ -104,7 +105,6 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                 (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,20,60,0.08)';
               }}
             >
-              {/* Left accent bar */}
               <div style={{
                 position: 'absolute', left: 0, top: '20%', bottom: '20%',
                 width: 2, background: colors.text, borderRadius: '0 2px 2px 0', opacity: 0.4,
@@ -135,29 +135,31 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
                   <span style={{ fontSize: 12, color: '#a0a8bc' }}>No history</span>
                 )}
               </div>
-
-              <ChevronRight size={16} style={{ color: '#a0a8bc', flexShrink: 0 }} />
             </div>
           );
         })}
       </div>
 
       {/* Desktop: table */}
-      <div className="hidden min-[600px]:block" style={{
+      <div className="hidden min-[640px]:block" style={{
         background: '#ffffff',
         border: '1px solid rgba(0,20,60,0.08)',
         borderRadius: 14,
         overflow: 'hidden',
       }}>
-        {/* Table header */}
+        {/* Header */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 130px 140px 32px',
-          padding: '10px 16px',
+          gridTemplateColumns: GRID,
+          padding: '10px 20px',
           borderBottom: '1px solid rgba(0,20,60,0.08)',
         }}>
-          {['Guitar', 'Last Maintenance', 'Status', ''].map((label) => (
-            <span key={label} style={{ fontSize: 10, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          {[
+            { label: 'Guitar', align: 'left' },
+            { label: 'Last Maintained', align: 'center' },
+            { label: 'Status', align: 'center' },
+          ].map(({ label, align }) => (
+            <span key={label} style={{ fontSize: 10, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: align as React.CSSProperties['textAlign'] }}>
               {label}
             </span>
           ))}
@@ -174,9 +176,9 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
               onClick={() => router.push(`/guitar/${guitar.id}`)}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 130px 140px 32px',
+                gridTemplateColumns: GRID,
                 alignItems: 'center',
-                padding: '14px 16px',
+                padding: '14px 20px',
                 borderBottom: isLast ? 'none' : '1px solid rgba(0,20,60,0.06)',
                 cursor: 'pointer',
                 transition: 'background 0.12s',
@@ -184,30 +186,38 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#e8ecf2'; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
+              {/* Guitar name + year */}
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: 14, fontWeight: 500, color: '#181e2e', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {guitar.maker} {guitar.model}
                 </p>
                 {guitar.year && (
-                  <p style={{ fontSize: 12, color: '#a0a8bc', margin: 0 }}>{guitar.year}</p>
+                  <p style={{ fontSize: 12, color: '#a0a8bc', margin: '2px 0 0' }}>{guitar.year}</p>
                 )}
               </div>
 
-              <span style={{ fontSize: 13, color: '#5c6680' }}>
-                {lastDate ? formatDate(lastDate) : '—'}
-              </span>
+              {/* Last maintained + days ago */}
+              <div style={{ textAlign: 'center' }}>
+                {lastDate ? (
+                  <>
+                    <p style={{ fontSize: 13, color: '#5c6680', margin: 0 }}>{formatDate(lastDate)}</p>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: colors.text, margin: '2px 0 0' }}>{guitar.daysSinceMaintenance}d ago</p>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 13, color: '#a0a8bc', margin: 0 }}>—</p>
+                )}
+              </div>
 
-              <div>
+              {/* Status badge */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <span style={{
                   fontSize: 11, fontWeight: 600, letterSpacing: '0.02em',
                   color: colors.text, background: colors.bg,
-                  borderRadius: 99, padding: '3px 9px',
+                  borderRadius: 99, padding: '3px 10px', whiteSpace: 'nowrap',
                 }}>
                   {STATUS_LABELS[guitar.status]}
                 </span>
               </div>
-
-              <ChevronRight size={14} style={{ color: '#a0a8bc' }} />
             </div>
           );
         })}

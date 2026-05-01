@@ -193,11 +193,106 @@ export default function Dashboard() {
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {sortedGuitars.map((guitar) => (
-            <GuitarRow key={guitar.id} guitar={guitar} />
-          ))}
-        </div>
+        <>
+          {/* Mobile: card list */}
+          <div className="flex min-[640px]:hidden flex-col" style={{ gap: 8 }}>
+            {sortedGuitars.map((guitar) => (
+              <GuitarRow key={guitar.id} guitar={guitar} />
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden min-[640px]:block" style={{
+            background: '#ffffff',
+            border: '1px solid rgba(0,20,60,0.08)',
+            borderRadius: 14,
+            overflow: 'hidden',
+          }}>
+            {/* Header */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 140px 1fr 130px',
+              padding: '10px 20px',
+              borderBottom: '1px solid rgba(0,20,60,0.08)',
+            }}>
+              {[
+                { label: 'Guitar', align: 'left' },
+                { label: 'Last Maintained', align: 'center' },
+                { label: 'Notes', align: 'center' },
+                { label: 'Status', align: 'center' },
+              ].map(({ label, align }) => (
+                <span key={label} style={{ fontSize: 10, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: align as React.CSSProperties['textAlign'] }}>
+                  {label}
+                </span>
+              ))}
+            </div>
+            {sortedGuitars.map((guitar, i) => {
+              const statusColors = {
+                good: { text: '#16a34a', bg: 'rgba(22,163,74,0.10)' },
+                warning: { text: '#c47a00', bg: 'rgba(196,122,0,0.10)' },
+                urgent: { text: '#d42020', bg: 'rgba(212,32,32,0.10)' },
+              };
+              const statusLabels = { good: 'Maintained', warning: 'Due Soon', urgent: 'Needs Service' };
+              const colors = statusColors[guitar.status];
+              const isLast = i === sortedGuitars.length - 1;
+              const formatDate = (date: Date) =>
+                new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+              return (
+                <a
+                  key={guitar.id}
+                  href={`/guitar/${guitar.id}`}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.2fr 140px 1fr 130px',
+                    alignItems: 'center',
+                    padding: '14px 20px',
+                    borderBottom: isLast ? 'none' : '1px solid rgba(0,20,60,0.06)',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    transition: 'background 0.12s',
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#e8ecf2'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                >
+                  {/* Guitar name + year */}
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: '#181e2e', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {guitar.maker} {guitar.model}
+                    </p>
+                    {guitar.year && <p style={{ fontSize: 12, color: '#a0a8bc', margin: '2px 0 0' }}>{guitar.year}</p>}
+                  </div>
+                  {/* Last maintained + days ago */}
+                  <div style={{ textAlign: 'center' }}>
+                    {guitar.lastMaintenanceDate ? (
+                      <>
+                        <p style={{ fontSize: 13, color: '#5c6680', margin: 0 }}>{formatDate(guitar.lastMaintenanceDate)}</p>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: colors.text, margin: '2px 0 0' }}>{guitar.daysSinceMaintenance}d ago</p>
+                      </>
+                    ) : (
+                      <p style={{ fontSize: 13, color: '#a0a8bc', margin: 0 }}>—</p>
+                    )}
+                  </div>
+                  {/* Notes */}
+                  <div style={{ textAlign: 'center', minWidth: 0, paddingRight: 12 }}>
+                    <p style={{ fontSize: 12, color: '#a0a8bc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {guitar.lastMaintenanceNotes || '—'}
+                    </p>
+                  </div>
+                  {/* Status badge */}
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 600, letterSpacing: '0.02em',
+                      color: colors.text, background: colors.bg,
+                      borderRadius: 99, padding: '3px 10px', whiteSpace: 'nowrap',
+                    }}>
+                      {statusLabels[guitar.status]}
+                    </span>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {showGuitarForm && (
