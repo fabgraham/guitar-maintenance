@@ -50,8 +50,8 @@ export default function Dashboard() {
     }
 
     if (sortBy === 'recentlyUpdated') {
-      const aRecent = aDays >= 0 && aDays <= 90 ? 0 : 1;
-      const bRecent = bDays >= 0 && bDays <= 90 ? 0 : 1;
+      const aRecent = aDays >= 0 && aDays <= 60 ? 0 : 1;
+      const bRecent = bDays >= 0 && bDays <= 60 ? 0 : 1;
       if (aRecent !== bRecent) return aRecent - bRecent;
       if (aDays === -1 && bDays !== -1) return 1;
       if (bDays === -1 && aDays !== -1) return -1;
@@ -80,6 +80,7 @@ export default function Dashboard() {
         <h1 style={{ fontSize: 28, fontWeight: 700, color: '#181e2e', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
           Dashboard
         </h1>
+        {/* Sort dropdown — hidden for now, kept in case we want to bring it back.
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'older90' | 'recentlyUpdated' | 'name')}
@@ -99,6 +100,7 @@ export default function Dashboard() {
           <option value="older90">Older than 90 days</option>
           <option value="name">Name (A–Z)</option>
         </select>
+        */}
       </div>
 
       {/* Stat cards */}
