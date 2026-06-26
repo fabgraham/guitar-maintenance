@@ -2,7 +2,7 @@
 
 import { MaintenanceLog } from '@/types';
 import { Edit, Trash2, CalendarDays } from 'lucide-react';
-import { useAppState, deleteMaintenanceLogFromSupabase } from '@/hooks/useAppState';
+import { useAppState, deleteMaintenanceLogFromAPI } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { useState } from 'react';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -163,11 +163,11 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                   const logIdToDelete = log.id;
                   setConfirmingLogId(null);
                   dispatch({ type: 'DELETE_MAINTENANCE_LOG', payload: logIdToDelete });
-                  const { error } = await deleteMaintenanceLogFromSupabase(logIdToDelete);
-                  if (error) {
-                    showToast('Maintenance log deleted locally, but failed to sync to cloud', 'warning');
-                  } else {
+                  try {
+                    await deleteMaintenanceLogFromAPI(logIdToDelete);
                     showToast('Maintenance log deleted successfully!', 'success');
+                  } catch {
+                    showToast('Maintenance log deleted locally, but failed to sync to cloud', 'warning');
                   }
                 }}
                 onCancel={() => setConfirmingLogId(null)}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppState, syncMaintenanceLogToSupabase } from '@/hooks/useAppState';
+import { useAppState, syncMaintenanceLogToAPI, addMaintenanceLogToAPI } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { MaintenanceLog } from '@/types';
 
@@ -73,11 +73,15 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
         dispatch({ type: 'ADD_MAINTENANCE_LOG', payload: newLog });
       }
 
-      const { error } = await syncMaintenanceLogToSupabase(logToSync);
-      if (error) {
-        showToast('Maintenance log saved locally, but failed to sync to cloud', 'warning');
-      } else {
+      try {
+        if (logId) {
+          await syncMaintenanceLogToAPI(logToSync);
+        } else {
+          await addMaintenanceLogToAPI(logToSync);
+        }
         showToast(logId ? 'Maintenance log updated!' : 'Maintenance log added!', 'success');
+      } catch {
+        showToast('Maintenance log saved locally, but failed to sync to cloud', 'warning');
       }
 
       onClose();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppState, syncGuitarToSupabase } from '@/hooks/useAppState';
+import { useAppState, syncGuitarToAPI, addGuitarToAPI } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { Guitar } from '@/types';
 import { X } from 'lucide-react';
@@ -66,11 +66,15 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
         dispatch({ type: 'ADD_GUITAR', payload: newGuitar });
       }
 
-      const { error } = await syncGuitarToSupabase(guitarToSync);
-      if (error) {
-        showToast('Guitar saved locally, but failed to sync to cloud', 'warning');
-      } else {
+      try {
+        if (guitarId) {
+          await syncGuitarToAPI(guitarToSync);
+        } else {
+          await addGuitarToAPI(guitarToSync);
+        }
         showToast(guitarId ? 'Guitar updated successfully!' : 'Guitar added successfully!', 'success');
+      } catch {
+        showToast('Guitar saved locally, but failed to sync to cloud', 'warning');
       }
 
       onClose();

@@ -10,7 +10,7 @@ import { GuitarForm } from '@/components/GuitarForm';
 import { MaintenanceLogForm } from '@/components/MaintenanceLogForm';
 import { MaintenanceLogList } from '@/components/MaintenanceLogList';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { useAppState, deleteGuitarFromSupabase } from '@/hooks/useAppState';
+import { useAppState, deleteGuitarFromAPI } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
 import { ArrowLeft, Plus, Trash2, Pencil } from 'lucide-react';
@@ -257,11 +257,11 @@ export default function GuitarDetail() {
           setShowDeleteConfirm(false);
           dispatch({ type: 'DELETE_GUITAR', payload: guitarId });
           router.push('/');
-          const { error } = await deleteGuitarFromSupabase(guitarId);
-          if (error) {
-            showToast('Guitar deleted locally, but failed to sync to cloud', 'warning');
-          } else {
+          try {
+            await deleteGuitarFromAPI(guitarId);
             showToast('Guitar deleted successfully!', 'success');
+          } catch {
+            showToast('Guitar deleted locally, but failed to sync to cloud', 'warning');
           }
         }}
         onCancel={() => setShowDeleteConfirm(false)}

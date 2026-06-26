@@ -4,7 +4,6 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AppState, Guitar, MaintenanceLog } from '@/types';
 import { loadFromStorage, saveToStorage } from '@/utils/storage';
 import { seedGuitars, seedMaintenanceLogs } from '@/utils/seedData';
-import { supabase } from '@/utils/supabase';
 
 type AppAction =
   | { type: 'ADD_GUITAR'; payload: Guitar }
@@ -79,55 +78,90 @@ function appReducer(state: AppState, action: AppAction): AppState {
   return newState;
 }
 
-// Supabase sync helper functions
-export async function syncGuitarToSupabase(guitar: Guitar): Promise<{ error: any }> {
-  if (!supabase) return { error: null };
+function parseGuitar(r: any): Guitar {
+  return {
+    id: r.id,
+    maker: r.maker,
+    model: r.model,
+    year: r.year || '',
+    createdAt: new Date(r.createdAt),
+    updatedAt: new Date(r.updatedAt),
+  };
+}
 
-  const { error } = await supabase.from('guitars').upsert({
-    id: guitar.id,
-    maker: guitar.maker,
-    model: guitar.model,
-    year: guitar.year,
-    created_at: guitar.createdAt.toISOString(),
-    updated_at: guitar.updatedAt.toISOString()
+function parseLog(r: any): MaintenanceLog {
+  return {
+    id: r.id,
+    guitarId: r.guitarId,
+    maintenanceDate: new Date(r.maintenanceDate),
+    typeOfWork: r.typeOfWork,
+    notes: r.notes || '',
+    createdAt: new Date(r.createdAt),
+  };
+}
+
+export async function syncGuitarToAPI(guitar: Guitar): Promise<void> {
+  await fetch(`/api/guitars/${guitar.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      maker: guitar.maker,
+      model: guitar.model,
+      year: guitar.year,
+      updatedAt: guitar.updatedAt.toISOString(),
+    }),
   });
-
-  return { error };
 }
 
-export async function syncMaintenanceLogToSupabase(log: MaintenanceLog): Promise<{ error: any }> {
-  if (!supabase) return { error: null };
-
-  const { error } = await supabase.from('maintenance_logs').upsert({
-    id: log.id,
-    guitar_id: log.guitarId,
-    maintenance_date: log.maintenanceDate.toISOString(),
-    type_of_work: log.typeOfWork,
-    notes: log.notes,
-    created_at: log.createdAt.toISOString()
+export async function addGuitarToAPI(guitar: Guitar): Promise<void> {
+  await fetch('/api/guitars', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: guitar.id,
+      maker: guitar.maker,
+      model: guitar.model,
+      year: guitar.year,
+      createdAt: guitar.createdAt.toISOString(),
+      updatedAt: guitar.updatedAt.toISOString(),
+    }),
   });
-
-  return { error };
 }
 
-export async function deleteGuitarFromSupabase(guitarId: string): Promise<{ error: any }> {
-  if (!supabase) return { error: null };
-
-  // Delete associated maintenance logs first
-  await supabase.from('maintenance_logs').delete().eq('guitar_id', guitarId);
-
-  // Then delete the guitar
-  const { error } = await supabase.from('guitars').delete().eq('id', guitarId);
-
-  return { error };
+export async function deleteGuitarFromAPI(guitarId: string): Promise<void> {
+  await fetch(`/api/guitars/${guitarId}`, { method: 'DELETE' });
 }
 
-export async function deleteMaintenanceLogFromSupabase(logId: string): Promise<{ error: any }> {
-  if (!supabase) return { error: null };
+export async function syncMaintenanceLogToAPI(log: MaintenanceLog): Promise<void> {
+  await fetch(`/api/maintenance-logs/${log.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      guitarId: log.guitarId,
+      maintenanceDate: log.maintenanceDate.toISOString(),
+      typeOfWork: log.typeOfWork,
+      notes: log.notes,
+    }),
+  });
+}
 
-  const { error } = await supabase.from('maintenance_logs').delete().eq('id', logId);
+export async function addMaintenanceLogToAPI(log: MaintenanceLog): Promise<void> {
+  await fetch('/api/maintenance-logs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: log.id,
+      guitarId: log.guitarId,
+      maintenanceDate: log.maintenanceDate.toISOString(),
+      typeOfWork: log.typeOfWork,
+      notes: log.notes,
+      createdAt: log.createdAt.toISOString(),
+    }),
+  });
+}
 
-  return { error };
+export async function deleteMaintenanceLogFromAPI(logId: string): Promise<void> {
+  await fetch(`/api/maintenance-logs/${logId}`, { method: 'DELETE' });
 }
 
 const AppContext = createContext<{
@@ -140,55 +174,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const load = async () => {
-      if (supabase) {
-        const { data: g } = await supabase.from('guitars').select('*');
-        const { data: m } = await supabase.from('maintenance_logs').select('*');
-        const guitars: Guitar[] = (g || []).map((row: any) => ({
-          id: row.id,
-          maker: row.maker,
-          model: row.model,
-          year: row.year || '',
-          createdAt: new Date(row.created_at),
-          updatedAt: new Date(row.updated_at)
-        }));
-        const maintenanceLogs: MaintenanceLog[] = (m || []).map((row: any) => ({
-          id: row.id,
-          guitarId: row.guitar_id,
-          maintenanceDate: new Date(row.maintenance_date),
-          typeOfWork: row.type_of_work,
-          notes: row.notes || '',
-          createdAt: new Date(row.created_at)
-        }));
+      try {
+        const [gRes, mRes] = await Promise.all([
+          fetch('/api/guitars'),
+          fetch('/api/maintenance-logs'),
+        ]);
+
+        if (!gRes.ok || !mRes.ok) throw new Error('API unavailable');
+
+        const gData = await gRes.json();
+        const mData = await mRes.json();
+
+        const guitars: Guitar[] = gData.map(parseGuitar);
+        const maintenanceLogs: MaintenanceLog[] = mData.map(parseLog);
+
         if (guitars.length === 0 && maintenanceLogs.length === 0) {
-          const seedG = seedGuitars.map(g => ({
-            id: g.id,
-            maker: g.maker,
-            model: g.model,
-            year: g.year,
-            created_at: g.createdAt.toISOString(),
-            updated_at: g.updatedAt.toISOString()
-          }));
-          const seedM = seedMaintenanceLogs.map(m => ({
-            id: m.id,
-            guitar_id: m.guitarId,
-            maintenance_date: m.maintenanceDate.toISOString(),
-            type_of_work: m.typeOfWork,
-            notes: m.notes,
-            created_at: m.createdAt.toISOString()
-          }));
-          await supabase.from('guitars').upsert(seedG);
-          await supabase.from('maintenance_logs').upsert(seedM);
+          await Promise.all(seedGuitars.map(g => addGuitarToAPI(g)));
+          await Promise.all(seedMaintenanceLogs.map(m => addMaintenanceLogToAPI(m)));
           dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } });
           return;
         }
+
         dispatch({ type: 'LOAD_STATE', payload: { guitars, maintenanceLogs, isLoading: false } });
-        return;
-      }
-      const loadedState = loadFromStorage();
-      if (loadedState.guitars.length > 0 || loadedState.maintenanceLogs.length > 0) {
-        dispatch({ type: 'LOAD_STATE', payload: { ...loadedState, isLoading: false } });
-      } else {
-        dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } });
+      } catch {
+        const loadedState = loadFromStorage();
+        if (loadedState.guitars.length > 0 || loadedState.maintenanceLogs.length > 0) {
+          dispatch({ type: 'LOAD_STATE', payload: { ...loadedState, isLoading: false } });
+        } else {
+          dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } });
+        }
       }
     };
     load();
