@@ -19,9 +19,9 @@ export const calculateMaintenanceStatus = (
       (today.getTime() - lastMaintenanceDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    if (daysSinceMaintenance > 120) {
+    if (daysSinceMaintenance > 180) {
       status = 'urgent';
-    } else if (daysSinceMaintenance > 60) {
+    } else if (daysSinceMaintenance > 120) {
       status = 'warning';
     } else {
       status = 'good';
