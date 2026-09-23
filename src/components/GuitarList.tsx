@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
 import { useRouter } from 'next/navigation';
+import { ChevronDown } from 'lucide-react';
 
 interface GuitarListProps {
   onEditClick: (guitarId: string) => void;
@@ -20,15 +22,44 @@ const STATUS_LABELS = {
   urgent: 'Needs Service',
 };
 
+// Lower number = more urgent, sorts first when sorting by status
+const STATUS_ORDER = {
+  urgent: 0,
+  warning: 1,
+  good: 2,
+};
+
+type SortOption = 'name-asc' | 'status';
+
+const SORT_LABELS: Record<SortOption, string> = {
+  'name-asc': 'Name (A–Z)',
+  status: 'Status',
+};
+
 const GRID = '1.2fr 140px 130px';
 
 export function GuitarList({ onEditClick }: GuitarListProps) {
   const { state } = useAppState();
   const router = useRouter();
+  const [sortBy, setSortBy] = useState<SortOption>('name-asc');
 
-  const guitarsWithStatus = state.guitars.map(guitar =>
-    calculateMaintenanceStatus(guitar, state.maintenanceLogs)
-  );
+  const guitarsWithStatus = useMemo(() => {
+    const withStatus = state.guitars.map(guitar =>
+      calculateMaintenanceStatus(guitar, state.maintenanceLogs)
+    );
+
+    const getName = (g: typeof withStatus[number]) => `${g.maker} ${g.model}`.toLowerCase();
+
+    return [...withStatus].sort((a, b) => {
+      switch (sortBy) {
+        case 'status':
+          return STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || getName(a).localeCompare(getName(b));
+        case 'name-asc':
+        default:
+          return getName(a).localeCompare(getName(b));
+      }
+    });
+  }, [state.guitars, state.maintenanceLogs, sortBy]);
 
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
@@ -74,6 +105,42 @@ export function GuitarList({ onEditClick }: GuitarListProps) {
 
   return (
     <>
+      {/* Sort control */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+        <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+          <label htmlFor="guitar-sort" style={{ fontSize: 12, color: '#5c6680', marginRight: 8 }}>
+            Sort by
+          </label>
+          <select
+            id="guitar-sort"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            style={{
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              background: '#ffffff',
+              border: '1px solid rgba(0,20,60,0.12)',
+              borderRadius: 10,
+              padding: '7px 30px 7px 12px',
+              fontSize: 13,
+              fontWeight: 500,
+              color: '#181e2e',
+              cursor: 'pointer',
+            }}
+          >
+            {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
+              <option key={option} value={option}>
+                {SORT_LABELS[option]}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={14}
+            style={{ position: 'absolute', right: 10, pointerEvents: 'none', color: '#5c6680' }}
+          />
+        </div>
+      </div>
+
       {/* Mobile: card list */}
       <div className="flex min-[640px]:hidden flex-col" style={{ gap: 8 }}>
         {guitarsWithStatus.map((guitar) => {
