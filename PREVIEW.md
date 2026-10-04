@@ -1,8 +1,9 @@
 # Review the app improvements locally
 
 The original app is saved on `backup/before-app-improvements` at commit
-`a1450f2`. `main` still points to that version. The improvements live on
-`preview/app-improvements`. No branch has been pushed.
+`a1450f2`. The reviewed improvements were developed on
+`preview/app-improvements`; production deployments use `main`. Keep the
+backup branch when publishing so the original remains available on GitHub.
 
 ## Start the improved preview
 
