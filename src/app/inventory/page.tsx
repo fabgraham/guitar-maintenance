@@ -25,16 +25,20 @@ export default function Inventory() {
   };
 
   return (
-    <main style={{ padding: 28, minHeight: '100vh' }}>
+    <main className="page-shell">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#181e2e', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+        <p className="section-label mb-2">Your instruments</p>
+        <h1 className="page-title">
           Collection
         </h1>
+        </div>
         <button
           onClick={handleAddClick}
+          className="btn btn-primary"
           style={{
-            background: '#4d7cf6',
+            background: '#2853bd',
             color: '#fff',
             border: 'none',
             borderRadius: 10,

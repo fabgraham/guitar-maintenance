@@ -1,293 +1,63 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useAppState } from '@/hooks/useAppState';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
-import { useRouter } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
+import { StatusBadge } from '@/components/StatusBadge';
+import { GuitarRow } from '@/components/GuitarRow';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 
-interface GuitarListProps {
-  onEditClick: (guitarId: string) => void;
-}
-
-const STATUS_COLORS = {
-  good: { text: '#16a34a', bg: 'rgba(22,163,74,0.10)' },
-  warning: { text: '#c47a00', bg: 'rgba(196,122,0,0.10)' },
-  urgent: { text: '#d42020', bg: 'rgba(212,32,32,0.10)' },
-};
-
-const STATUS_LABELS = {
-  good: 'Maintained',
-  warning: 'Due Soon',
-  urgent: 'Needs Service',
-};
-
-// Lower number = more urgent, sorts first when sorting by status
-const STATUS_ORDER = {
-  urgent: 0,
-  warning: 1,
-  good: 2,
-};
-
-type SortOption = 'name-asc' | 'status';
-
-const SORT_LABELS: Record<SortOption, string> = {
-  'name-asc': 'Name (A–Z)',
-  status: 'Status',
-};
-
-const GRID = '1.2fr 140px 130px';
+interface GuitarListProps { onEditClick: (guitarId: string) => void; }
+const statusOrder = { urgent: 0, warning: 1, good: 2 };
 
 export function GuitarList({ onEditClick }: GuitarListProps) {
   const { state } = useAppState();
-  const router = useRouter();
-  const [sortBy, setSortBy] = useState<SortOption>('name-asc');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'status'>('name-asc');
+  const guitars = useMemo(() => state.guitars
+    .map(guitar => calculateMaintenanceStatus(guitar, state.maintenanceLogs))
+    .sort((a, b) => (sortBy === 'status' ? statusOrder[a.status] - statusOrder[b.status] : 0)
+      || `${a.maker} ${a.model}`.localeCompare(`${b.maker} ${b.model}`)), [state.guitars, state.maintenanceLogs, sortBy]);
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
 
-  const guitarsWithStatus = useMemo(() => {
-    const withStatus = state.guitars.map(guitar =>
-      calculateMaintenanceStatus(guitar, state.maintenanceLogs)
-    );
-
-    const getName = (g: typeof withStatus[number]) => `${g.maker} ${g.model}`.toLowerCase();
-
-    return [...withStatus].sort((a, b) => {
-      switch (sortBy) {
-        case 'status':
-          return STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || getName(a).localeCompare(getName(b));
-        case 'name-asc':
-        default:
-          return getName(a).localeCompare(getName(b));
-      }
-    });
-  }, [state.guitars, state.maintenanceLogs, sortBy]);
-
-  const formatDate = (date: Date) =>
-    new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
-
-  const getLastMaintenanceDate = (guitarId: string) => {
-    return state.maintenanceLogs
-      .filter(log => log.guitarId === guitarId)
-      .sort((a, b) => b.maintenanceDate.getTime() - a.maintenanceDate.getTime())[0]?.maintenanceDate;
-  };
-
-  if (guitarsWithStatus.length === 0) {
-    return (
-      <div style={{ textAlign: 'center', padding: '48px 0' }}>
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid rgba(0,20,60,0.08)',
-          borderRadius: 14,
-          padding: '28px 20px',
-          maxWidth: 360,
-          margin: '0 auto',
-        }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: '#181e2e', marginBottom: 8 }}>No guitars in your collection</p>
-          <p style={{ fontSize: 13, color: '#5c6680', marginBottom: 20 }}>Start by adding your first guitar to track maintenance.</p>
-          <button
-            onClick={() => onEditClick('')}
-            style={{
-              background: '#4d7cf6',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 10,
-              padding: '9px 16px',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            Add Your First Guitar
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (state.isLoading) return <LoadingSkeleton />;
+  if (!guitars.length) return (
+    <div className="panel text-center py-10 max-w-lg mx-auto">
+      <h2 className="font-semibold mb-2">No guitars in your collection</h2>
+      <p className="text-sm text-[#5c6680] mb-5">Start by adding your first guitar to track maintenance.</p>
+      <button className="btn btn-primary" onClick={() => onEditClick('')}>Add Your First Guitar</button>
+    </div>
+  );
 
   return (
     <>
-      {/* Sort control */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
-        <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-          <label htmlFor="guitar-sort" style={{ fontSize: 12, color: '#5c6680', marginRight: 8 }}>
-            Sort by
-          </label>
-          <select
-            id="guitar-sort"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            style={{
-              appearance: 'none',
-              WebkitAppearance: 'none',
-              background: '#ffffff',
-              border: '1px solid rgba(0,20,60,0.12)',
-              borderRadius: 10,
-              padding: '7px 30px 7px 12px',
-              fontSize: 13,
-              fontWeight: 500,
-              color: '#181e2e',
-              cursor: 'pointer',
-            }}
-          >
-            {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
-              <option key={option} value={option}>
-                {SORT_LABELS[option]}
-              </option>
-            ))}
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+        <p className="section-label">{guitars.length} guitar{guitars.length === 1 ? '' : 's'}</p>
+        <div className="relative inline-flex items-center gap-2">
+          <label htmlFor="guitar-sort" className="text-sm text-[#5c6680]">Sort by</label>
+          <select id="guitar-sort" value={sortBy} onChange={event => setSortBy(event.target.value as typeof sortBy)}
+            className="appearance-none rounded-[10px] border bg-white py-2.5 pl-3 pr-8 text-sm min-h-[44px]">
+            <option value="name-asc">Name (A–Z)</option><option value="status">Status</option>
           </select>
-          <ChevronDown
-            size={14}
-            style={{ position: 'absolute', right: 10, pointerEvents: 'none', color: '#5c6680' }}
-          />
+          <ChevronDown size={14} className="absolute right-3 pointer-events-none text-[#5c6680]" />
         </div>
       </div>
-
-      {/* Mobile: card list */}
-      <div className="flex min-[640px]:hidden flex-col" style={{ gap: 8 }}>
-        {guitarsWithStatus.map((guitar) => {
-          const colors = STATUS_COLORS[guitar.status];
-          const lastDate = getLastMaintenanceDate(guitar.id);
-          return (
-            <div
-              key={guitar.id}
-              onClick={() => router.push(`/guitar/${guitar.id}`)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#ffffff',
-                border: '1px solid rgba(0,20,60,0.08)',
-                borderRadius: 14,
-                padding: '16px 18px',
-                gap: 12,
-                cursor: 'pointer',
-                position: 'relative',
-                overflow: 'hidden',
-                transition: 'background 0.13s, border-color 0.13s',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = '#e8ecf2';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,20,60,0.14)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = '#ffffff';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,20,60,0.08)';
-              }}
-            >
-              <div style={{
-                position: 'absolute', left: 0, top: '20%', bottom: '20%',
-                width: 2, background: colors.text, borderRadius: '0 2px 2px 0', opacity: 0.4,
-              }} />
-
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 15, fontWeight: 500, color: '#181e2e' }}>
-                    {guitar.maker} {guitar.model}
-                  </span>
-                  <span style={{
-                    fontSize: 11, fontWeight: 600, letterSpacing: '0.02em',
-                    color: colors.text, background: colors.bg,
-                    borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap',
-                  }}>
-                    {STATUS_LABELS[guitar.status]}
-                  </span>
-                </div>
-                {guitar.year && (
-                  <p style={{ fontSize: 12, color: '#a0a8bc', margin: 0 }}>{guitar.year}</p>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, flexShrink: 0 }}>
-                {lastDate ? (
-                  <span style={{ fontSize: 12, color: '#a0a8bc' }}>{formatDate(lastDate)}</span>
-                ) : (
-                  <span style={{ fontSize: 12, color: '#a0a8bc' }}>No history</span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="flex min-[1000px]:hidden flex-col gap-2">
+        {guitars.map(guitar => <GuitarRow key={guitar.id} guitar={guitar} />)}
       </div>
-
-      {/* Desktop: table */}
-      <div className="hidden min-[640px]:block" style={{
-        background: '#ffffff',
-        border: '1px solid rgba(0,20,60,0.08)',
-        borderRadius: 14,
-        overflow: 'hidden',
-      }}>
-        {/* Header */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: GRID,
-          padding: '10px 20px',
-          borderBottom: '1px solid rgba(0,20,60,0.08)',
-        }}>
-          {[
-            { label: 'Guitar', align: 'left' },
-            { label: 'Last Maintained', align: 'center' },
-            { label: 'Status', align: 'center' },
-          ].map(({ label, align }) => (
-            <span key={label} style={{ fontSize: 10, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: align as React.CSSProperties['textAlign'] }}>
-              {label}
-            </span>
-          ))}
+      <div className="hidden min-[1000px]:block rounded-[14px] border bg-white overflow-hidden">
+        <div className="grid grid-cols-[minmax(0,1fr)_170px_140px_24px] gap-4 px-5 py-3 border-b section-label">
+          <span>Guitar</span><span>Last maintained</span><span>Status</span><span className="sr-only">Details</span>
         </div>
-
-        {/* Rows */}
-        {guitarsWithStatus.map((guitar, i) => {
-          const colors = STATUS_COLORS[guitar.status];
-          const lastDate = getLastMaintenanceDate(guitar.id);
-          const isLast = i === guitarsWithStatus.length - 1;
-          return (
-            <div
-              key={guitar.id}
-              onClick={() => router.push(`/guitar/${guitar.id}`)}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: GRID,
-                alignItems: 'center',
-                padding: '14px 20px',
-                borderBottom: isLast ? 'none' : '1px solid rgba(0,20,60,0.06)',
-                cursor: 'pointer',
-                transition: 'background 0.12s',
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#e8ecf2'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-            >
-              {/* Guitar name + year */}
-              <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: 14, fontWeight: 500, color: '#181e2e', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {guitar.maker} {guitar.model}
-                </p>
-                {guitar.year && (
-                  <p style={{ fontSize: 12, color: '#a0a8bc', margin: '2px 0 0' }}>{guitar.year}</p>
-                )}
-              </div>
-
-              {/* Last maintained + days ago */}
-              <div style={{ textAlign: 'center' }}>
-                {lastDate ? (
-                  <>
-                    <p style={{ fontSize: 13, color: '#5c6680', margin: 0 }}>{formatDate(lastDate)}</p>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: colors.text, margin: '2px 0 0' }}>{guitar.daysSinceMaintenance}d ago</p>
-                  </>
-                ) : (
-                  <p style={{ fontSize: 13, color: '#a0a8bc', margin: 0 }}>—</p>
-                )}
-              </div>
-
-              {/* Status badge */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <span style={{
-                  fontSize: 11, fontWeight: 600, letterSpacing: '0.02em',
-                  color: colors.text, background: colors.bg,
-                  borderRadius: 99, padding: '3px 10px', whiteSpace: 'nowrap',
-                }}>
-                  {STATUS_LABELS[guitar.status]}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+        {guitars.map(guitar => (
+          <Link key={guitar.id} href={`/guitar/${guitar.id}`} className="grid grid-cols-[minmax(0,1fr)_170px_140px_24px] gap-4 items-center px-5 py-4 border-b last:border-b-0 hover:bg-surface-2 transition-colors">
+            <div className="min-w-0"><p className="text-sm font-semibold break-words">{guitar.maker} {guitar.model}</p>{guitar.year && <p className="text-sm text-[#5c6680] mt-1">{guitar.year}</p>}</div>
+            <div className="text-sm text-[#5c6680]">{guitar.lastMaintenanceDate ? <><p>{formatDate(guitar.lastMaintenanceDate)}</p><p className="text-xs mt-1">{guitar.daysSinceMaintenance} days ago</p></> : 'No history'}</div>
+            <div><StatusBadge status={guitar.status} /></div>
+            <ChevronRight size={16} className="text-[#5c6680]" />
+          </Link>
+        ))}
       </div>
     </>
   );

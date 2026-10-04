@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Space Grotesk', 'sans-serif'],
-        mono: ['Space Mono', 'monospace'],
+        sans: ['var(--font-space-grotesk)', 'sans-serif'],
+        mono: ['var(--font-space-mono)', 'monospace'],
       },
       colors: {
         // Design token colors

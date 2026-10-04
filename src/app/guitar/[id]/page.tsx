@@ -4,12 +4,14 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const dynamicParams = true;
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GuitarForm } from '@/components/GuitarForm';
 import { MaintenanceLogForm } from '@/components/MaintenanceLogForm';
 import { MaintenanceLogList } from '@/components/MaintenanceLogList';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { StatusBadge } from '@/components/StatusBadge';
 import { useAppState, deleteGuitarFromAPI } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { calculateMaintenanceStatus } from '@/utils/maintenance';
@@ -17,15 +19,9 @@ import { ArrowLeft, Plus, Trash2, Pencil } from 'lucide-react';
 import Link from 'next/link';
 
 const STATUS_COLORS = {
-  good: { text: '#16a34a', bg: 'rgba(22,163,74,0.10)' },
-  warning: { text: '#c47a00', bg: 'rgba(196,122,0,0.10)' },
-  urgent: { text: '#d42020', bg: 'rgba(212,32,32,0.10)' },
-};
-
-const STATUS_LABELS = {
-  good: 'Maintained',
-  warning: 'Due Soon',
-  urgent: 'Needs Service',
+  good: { text: '#116b33', bg: 'rgba(22,163,74,0.10)' },
+  warning: { text: '#916000', bg: 'rgba(196,122,0,0.10)' },
+  urgent: { text: '#b91c1c', bg: 'rgba(212,32,32,0.10)' },
 };
 
 export default function GuitarDetail() {
@@ -37,36 +33,20 @@ export default function GuitarDetail() {
   const [editingLog, setEditingLog] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const guitarId = params.id as string;
   const guitar = state.guitars.find(g => g.id === guitarId);
 
-  useEffect(() => { setMounted(true); }, []);
-
-  if (!mounted || state.isLoading || (!guitar && state.guitars.length === 0)) {
-    return (
-      <main style={{ padding: 28 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 64 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: '50%',
-            border: '2px solid rgba(0,20,60,0.08)',
-            borderTopColor: '#4d7cf6',
-            animation: 'spin 0.8s linear infinite',
-          }} />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          <p style={{ marginTop: 16, fontSize: 13, color: '#a0a8bc' }}>Loading guitar details…</p>
-        </div>
-      </main>
-    );
+  if (state.isLoading) {
+    return <main className="page-shell"><LoadingSkeleton label="Loading guitar details…" /></main>;
   }
 
   if (!guitar) {
     return (
-      <main style={{ padding: 28, textAlign: 'center' }}>
+      <main className="page-shell text-center">
         <h2 style={{ fontSize: 22, fontWeight: 700, color: '#181e2e', marginBottom: 16 }}>Guitar not found</h2>
         <Link href="/" style={{
-          background: '#4d7cf6', color: '#fff', borderRadius: 10,
+          background: '#2853bd', color: '#fff', borderRadius: 10,
           padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none',
         }}>
           Back to Dashboard
@@ -88,19 +68,19 @@ export default function GuitarDetail() {
   return (
     <main style={{ minHeight: '100vh' }}>
       {/* Fixed header */}
-      <div style={{
-        padding: '24px 28px',
+      <div className="detail-header" style={{
         borderBottom: '1px solid rgba(0,20,60,0.08)',
         background: '#f0f2f5',
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
+        gap: 8,
       }}>
         {/* Back button */}
         <button
-          onClick={() => router.back()}
+          aria-label="Back to collection"
+          onClick={() => router.push('/inventory')}
           style={{
-            width: 34, height: 34, borderRadius: 9,
+            width: 44, height: 44, borderRadius: 9,
             background: '#e8ecf2', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
@@ -111,41 +91,44 @@ export default function GuitarDetail() {
 
         {/* Title area */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 2 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#5c6680', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 2 }}>
             {guitar.maker}
           </p>
-          <h1 style={{ fontSize: 22, fontWeight: 500, color: '#181e2e', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <h1 className="detail-title" style={{ fontSize: 22, fontWeight: 600, color: '#181e2e', margin: 0 }}>
             {guitar.model}
           </h1>
         </div>
 
         {/* Action buttons */}
         <button
+          aria-label="Edit guitar"
           onClick={() => setShowEditForm(true)}
           style={{
-            width: 34, height: 34, borderRadius: 9,
+            width: 44, height: 44, borderRadius: 9,
             background: 'rgba(77,124,246,0.10)',
             border: '1px solid rgba(77,124,246,0.25)',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
         >
-          <Pencil size={15} style={{ color: '#4d7cf6' }} />
+          <Pencil size={15} style={{ color: '#2853bd' }} />
         </button>
         <button
+          aria-label="Delete guitar"
           onClick={() => setShowDeleteConfirm(true)}
           style={{
-            width: 34, height: 34, borderRadius: 9,
+            width: 44, height: 44, borderRadius: 9,
             background: 'rgba(212,32,32,0.08)',
             border: '1px solid rgba(212,32,32,0.20)',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
         >
-          <Trash2 size={15} style={{ color: '#d42020' }} />
+          <Trash2 size={15} style={{ color: '#b91c1c' }} />
         </button>
       </div>
 
       {/* Content */}
-      <div style={{ padding: 28 }}>
+      <div className="detail-content">
+        <div className="mb-4"><StatusBadge status={guitarWithStatus.status} /></div>
         {/* Last maintenance summary card */}
         <div style={{
           background: '#e8ecf2',
@@ -155,9 +138,9 @@ export default function GuitarDetail() {
           marginBottom: 28,
         }}>
           {guitarWithStatus.lastMaintenanceDate ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 16, alignItems: 'start' }}>
+            <div className="detail-summary">
               <div>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 6 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#5c6680', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 6 }}>
                   Last Maintenance
                 </p>
                 <p style={{ fontSize: 15, fontWeight: 600, color: '#181e2e', marginBottom: 2 }}>
@@ -183,16 +166,17 @@ export default function GuitarDetail() {
                 }}>
                   {guitarWithStatus.daysSinceMaintenance}
                 </p>
-                <p style={{ fontSize: 11, color: '#a0a8bc', marginTop: 4 }}>days</p>
+                <p style={{ fontSize: 11, color: '#5c6680', marginTop: 4 }}>days</p>
               </div>
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '12px 0' }}>
               <p style={{ fontSize: 13, color: '#5c6680', marginBottom: 12 }}>No maintenance records yet</p>
               <button
+                className="min-h-[44px]"
                 onClick={() => setShowLogForm(true)}
                 style={{
-                  background: '#4d7cf6', color: '#fff', border: 'none',
+                  background: '#2853bd', color: '#fff', border: 'none',
                   borderRadius: 9, padding: '8px 14px', fontSize: 13, fontWeight: 600,
                   cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
                 }}
@@ -207,13 +191,14 @@ export default function GuitarDetail() {
         {/* History section */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.10em', textTransform: 'uppercase' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#5c6680', letterSpacing: '0.10em', textTransform: 'uppercase' }}>
               History · {guitarLogs.length}
             </p>
             <button
+              className="min-h-[44px]"
               onClick={() => { setEditingLog(null); setShowLogForm(true); }}
               style={{
-                background: '#4d7cf6', color: '#fff', border: 'none',
+                background: '#2853bd', color: '#fff', border: 'none',
                 borderRadius: 9, padding: '7px 13px', fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5,
               }}

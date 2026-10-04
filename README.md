@@ -12,7 +12,7 @@ A modern web application built with Next.js to help guitarists track the mainten
 - **Maintenance Logs**: Detailed history for every service, string change, or repair.
 - **Smart Status**: Automatically calculates maintenance status based on the last service date.
 - **Responsive Design**: Works seamlessly on desktop and mobile devices.
-- **Data Persistence**: Your data is saved locally in your browser (LocalStorage).
+- **Data Persistence**: Your collection syncs to PostgreSQL, with a local browser copy as a fallback.
 
 ## 🛠️ Tech Stack
 
@@ -44,7 +44,16 @@ A modern web application built with Next.js to help guitarists track the mainten
    yarn install
    ```
 
-3. Run the development server:
+3. To review changes with an isolated sample collection, run:
+   ```bash
+   npm run preview
+   ```
+   Open [http://127.0.0.1:3000](http://127.0.0.1:3000). Preview mode saves
+   changes only in this browser and blocks database access. See
+   [PREVIEW.md](PREVIEW.md) for the backup branch and rollback instructions.
+
+   To use the normal data connections instead, run the development server
+   with `DATABASE_URL` configured in `.env.local`:
    ```bash
    npm run dev
    # or

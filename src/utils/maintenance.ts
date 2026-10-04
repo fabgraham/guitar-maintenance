@@ -1,5 +1,7 @@
 import { Guitar, MaintenanceLog, GuitarWithStatus, MaintenanceStatus } from '@/types';
 
+export const MAINTENANCE_THRESHOLDS = { maintained: 120, needsService: 180 };
+
 export const calculateMaintenanceStatus = (
   guitar: Guitar,
   maintenanceLogs: MaintenanceLog[]
@@ -19,9 +21,9 @@ export const calculateMaintenanceStatus = (
       (today.getTime() - lastMaintenanceDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    if (daysSinceMaintenance > 180) {
+    if (daysSinceMaintenance > MAINTENANCE_THRESHOLDS.needsService) {
       status = 'urgent';
-    } else if (daysSinceMaintenance > 120) {
+    } else if (daysSinceMaintenance > MAINTENANCE_THRESHOLDS.maintained) {
       status = 'warning';
     } else {
       status = 'good';

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { pool } from '@/lib/db';
+import { getPool } from '@/lib/db';
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const body = await request.json();
   const { maker, model, year, updatedAt } = body;
-  const { rows } = await pool.query(
+  const { rows } = await getPool().query(
     `UPDATE guitars SET maker=$1, model=$2, year=$3, updated_at=$4
      WHERE id=$5
      RETURNING id, maker, model, year, created_at, updated_at`,
@@ -23,6 +23,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
-  await pool.query('DELETE FROM guitars WHERE id=$1', [params.id]);
+  await getPool().query('DELETE FROM guitars WHERE id=$1', [params.id]);
   return new NextResponse(null, { status: 204 });
 }

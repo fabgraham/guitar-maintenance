@@ -18,7 +18,6 @@ const inputStyle: React.CSSProperties = {
   padding: '11px 13px',
   fontSize: 16,
   color: '#181e2e',
-  outline: 'none',
   width: '100%',
   boxSizing: 'border-box',
 };
@@ -97,6 +96,7 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
   return (
     <form
       onSubmit={handleSubmit}
+      aria-label={logId ? 'Edit maintenance entry' : 'Add maintenance entry'}
       style={{
         background: '#ffffff',
         border: '1px solid rgba(0,20,60,0.10)',
@@ -105,9 +105,12 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
       }}
     >
       {/* First row: type + date */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1 }}>
+      <div className="maintenance-fields">
+        <div>
+          <label htmlFor="maintenance-work" className="block text-sm font-medium text-[#5c6680] mb-2">Type of work</label>
           <input
+            id="maintenance-work"
+            autoFocus
             type="text"
             name="typeOfWork"
             value={formData.typeOfWork}
@@ -117,8 +120,10 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
             required
           />
         </div>
-        <div style={{ width: 150 }}>
+        <div>
+          <label htmlFor="maintenance-date" className="block text-sm font-medium text-[#5c6680] mb-2">Date</label>
           <input
+            id="maintenance-date"
             type="date"
             name="maintenanceDate"
             value={formData.maintenanceDate}
@@ -131,7 +136,9 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
 
       {/* Notes */}
       <div style={{ marginBottom: 14 }}>
+        <label htmlFor="maintenance-notes" className="block text-sm font-medium text-[#5c6680] mb-2">Notes (optional)</label>
         <textarea
+          id="maintenance-notes"
           name="notes"
           value={formData.notes}
           onChange={handleChange}
@@ -146,6 +153,7 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
         <button
           type="button"
           onClick={onClose}
+          className="min-h-[44px]"
           disabled={isSubmitting}
           style={{
             background: '#e8ecf2', color: '#5c6680', border: 'none',
@@ -156,9 +164,10 @@ export function MaintenanceLogForm({ guitarId, logId, onClose }: MaintenanceLogF
         </button>
         <button
           type="submit"
+          className="min-h-[44px]"
           disabled={isSubmitting}
           style={{
-            background: '#4d7cf6', color: '#fff', border: 'none',
+            background: '#2853bd', color: '#fff', border: 'none',
             borderRadius: 9, padding: '8px 14px', fontSize: 13, fontWeight: 600,
             cursor: isSubmitting ? 'not-allowed' : 'pointer',
             opacity: isSubmitting ? 0.7 : 1,

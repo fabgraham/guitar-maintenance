@@ -2,21 +2,16 @@
 
 import Link from 'next/link';
 import { GuitarWithStatus } from '@/types';
+import { StatusBadge } from '@/components/StatusBadge';
 
 interface GuitarRowProps {
   guitar: GuitarWithStatus;
 }
 
 const STATUS_COLORS = {
-  good: { text: '#16a34a', bg: 'rgba(22,163,74,0.10)' },
-  warning: { text: '#c47a00', bg: 'rgba(196,122,0,0.10)' },
-  urgent: { text: '#d42020', bg: 'rgba(212,32,32,0.10)' },
-};
-
-const STATUS_LABELS = {
-  good: 'Maintained',
-  warning: 'Due Soon',
-  urgent: 'Needs Service',
+  good: { text: '#116b33', bg: 'rgba(22,163,74,0.10)' },
+  warning: { text: '#916000', bg: 'rgba(196,122,0,0.10)' },
+  urgent: { text: '#b91c1c', bg: 'rgba(212,32,32,0.10)' },
 };
 
 export function GuitarRow({ guitar }: GuitarRowProps) {
@@ -71,21 +66,15 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
       />
 
       {/* Line 1: name (left) + badge (right) */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 5 }}>
-        <span style={{ fontSize: 16, fontWeight: 500, color: '#181e2e' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+        <span style={{ fontSize: 16, fontWeight: 600, color: '#181e2e', minWidth: 0, overflowWrap: 'anywhere' }}>
           {guitar.maker} {guitar.model}
         </span>
-        <span style={{
-          fontSize: 11, fontWeight: 600, letterSpacing: '0.02em',
-          color: colors.text, background: colors.bg,
-          borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0,
-        }}>
-          {STATUS_LABELS[guitar.status]}
-        </span>
+        <StatusBadge status={guitar.status} />
       </div>
 
       {/* Line 2: days ago · date */}
-      <p style={{ fontSize: 12, color: '#a0a8bc', margin: '0 0 3px' }}>
+      <p style={{ fontSize: 13, color: '#5c6680', margin: '0 0 6px' }}>
         {guitar.lastMaintenanceDate ? (
           <><span style={{ fontWeight: 600, color: colors.text }}>{guitar.daysSinceMaintenance}d ago</span> · {formatDate(guitar.lastMaintenanceDate)}</>
         ) : (
@@ -95,7 +84,7 @@ export function GuitarRow({ guitar }: GuitarRowProps) {
 
       {/* Line 3: notes */}
       {(guitar.lastMaintenanceNotes || guitar.year) && (
-        <p style={{ fontSize: 12, color: '#a0a8bc', margin: 0 }}>
+        <p style={{ fontSize: 14, color: '#5c6680', margin: 0, overflowWrap: 'anywhere' }}>
           {guitar.lastMaintenanceNotes || guitar.year}
         </p>
       )}

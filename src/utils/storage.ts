@@ -1,6 +1,15 @@
-import { AppState, Guitar, MaintenanceLog } from '@/types';
+import { AppState } from '@/types';
+import { isLocalPreview } from '@/utils/preview';
 
-const STORAGE_KEY = 'guitar-maintenance-app';
+const STORAGE_KEY = isLocalPreview ? 'guitar-maintenance-preview' : 'guitar-maintenance-app';
+
+export function hasStoredState(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
 
 export const loadFromStorage = (): AppState => {
   if (typeof window === 'undefined') {

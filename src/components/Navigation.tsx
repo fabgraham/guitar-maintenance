@@ -46,31 +46,33 @@ export function Navigation() {
       <header
         className="flex min-[640px]:hidden items-center justify-between fixed top-0 inset-x-0 z-40 px-5"
         style={{
-          height: 52,
+          height: 68,
           background: '#e8ecf2',
           borderBottom: '1px solid rgba(0,20,60,0.10)',
         }}
       >
         {/* Centered icon nav */}
-        <nav className="flex items-center justify-center gap-2 w-full">
+        <nav aria-label="Main navigation" className="flex items-center justify-center gap-2 w-full">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href === '/inventory' && pathname.startsWith('/guitar/'));
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-label={item.label}
+                aria-current={isActive ? 'page' : undefined}
                 style={{
-                  width: 44, height: 44,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  minWidth: 84, height: 56,
+                  display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center', justifyContent: 'center',
                   borderRadius: 12,
-                  color: isActive ? '#4d7cf6' : '#a0a8bc',
+                  color: isActive ? '#2853bd' : '#5c6680',
                   background: isActive ? 'rgba(77,124,246,0.12)' : 'transparent',
                   transition: 'color 0.15s, background 0.15s',
                 }}
               >
-                <Icon size={22} strokeWidth={1.5} />
+                <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
+                <span style={{ fontSize: 11, fontWeight: 600 }}>{item.label}</span>
               </Link>
             );
           })}
@@ -96,50 +98,53 @@ export function Navigation() {
                 className="flex flex-col leading-none select-none hover:opacity-75 transition-opacity"
               >
                 <span style={{ fontSize: 14, fontWeight: 700, color: '#181e2e', lineHeight: 1.2 }}>Guitar</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: '#a0a8bc', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Maintenance</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: '#5c6680', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Maintenance</span>
               </Link>
             )}
             <button
-              aria-label="Toggle sidebar"
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-expanded={!collapsed}
               onClick={toggleCollapsed}
               className={cn(
                 'flex items-center justify-center rounded-lg transition-colors hover:bg-black/5',
                 collapsed ? 'mx-auto' : 'ml-auto'
               )}
               style={{
-                width: 28, height: 28, flexShrink: 0,
+                width: 36, height: 36, flexShrink: 0,
                 border: '1px solid rgba(0,20,60,0.10)',
                 background: 'rgba(255,255,255,0.5)',
               }}
             >
               {collapsed ? (
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <rect x="1" y="3" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
-                  <rect x="1" y="6.4" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
-                  <rect x="1" y="9.8" width="12" height="1.2" rx="0.6" fill="#a0a8bc" />
+                  <rect x="1" y="3" width="12" height="1.2" rx="0.6" fill="#5c6680" />
+                  <rect x="1" y="6.4" width="12" height="1.2" rx="0.6" fill="#5c6680" />
+                  <rect x="1" y="9.8" width="12" height="1.2" rx="0.6" fill="#5c6680" />
                 </svg>
               ) : (
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="#a0a8bc" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="#5c6680" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               )}
             </button>
           </div>
 
           {/* Nav items */}
-          <nav className="flex-1 px-2 space-y-0.5">
+          <nav aria-label="Main navigation" className="flex-1 px-2 space-y-0.5">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href === '/inventory' && pathname.startsWith('/guitar/'));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   title={collapsed ? item.label : undefined}
+                  aria-label={item.label}
+                  aria-current={isActive ? 'page' : undefined}
                   className={cn(
                     'flex items-center rounded-[9px] transition-colors',
-                    collapsed ? 'justify-center' : 'gap-3',
-                    isActive ? 'text-[#4d7cf6]' : 'text-[#a0a8bc] hover:text-[#5c6680]'
+                    collapsed ? 'justify-center min-h-[44px]' : 'gap-3 min-h-[44px]',
+                    isActive ? 'text-[#2853bd]' : 'text-[#5c6680] hover:text-[#5c6680]'
                   )}
                   style={{
                     padding: collapsed ? '11px 0' : '9px 12px',
@@ -164,14 +169,14 @@ export function Navigation() {
           {/* Footer */}
           <div
             className="px-3 py-3.5"
-            style={{ borderTop: '1px solid rgba(0,20,60,0.10)', fontSize: 11, color: '#a0a8bc' }}
+            style={{ borderTop: '1px solid rgba(0,20,60,0.10)', fontSize: 11, color: '#5c6680' }}
           >
             {collapsed ? (
               <span style={{ display: 'flex', justifyContent: 'center' }}>
                 <List size={13} strokeWidth={1.5} />
               </span>
             ) : (
-              <span>{guitarCount} guitar{guitarCount !== 1 ? 's' : ''}</span>
+              <span>{state.isLoading ? 'Loading collection…' : `${guitarCount} guitar${guitarCount !== 1 ? 's' : ''}`}</span>
             )}
           </div>
         </div>

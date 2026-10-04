@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AppState, Guitar, MaintenanceLog } from '@/types';
-import { loadFromStorage, saveToStorage } from '@/utils/storage';
+import { hasStoredState, loadFromStorage, saveToStorage } from '@/utils/storage';
 import { seedGuitars, seedMaintenanceLogs } from '@/utils/seedData';
+import { createPreviewState, isLocalPreview } from '@/utils/preview';
 
 type AppAction =
   | { type: 'ADD_GUITAR'; payload: Guitar }
@@ -101,7 +102,8 @@ function parseLog(r: any): MaintenanceLog {
 }
 
 export async function syncGuitarToAPI(guitar: Guitar): Promise<void> {
-  await fetch(`/api/guitars/${guitar.id}`, {
+  if (isLocalPreview) return;
+  const response = await fetch(`/api/guitars/${guitar.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -111,10 +113,12 @@ export async function syncGuitarToAPI(guitar: Guitar): Promise<void> {
       updatedAt: guitar.updatedAt.toISOString(),
     }),
   });
+  if (!response.ok) throw new Error('Could not update guitar');
 }
 
 export async function addGuitarToAPI(guitar: Guitar): Promise<void> {
-  await fetch('/api/guitars', {
+  if (isLocalPreview) return;
+  const response = await fetch('/api/guitars', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -126,14 +130,18 @@ export async function addGuitarToAPI(guitar: Guitar): Promise<void> {
       updatedAt: guitar.updatedAt.toISOString(),
     }),
   });
+  if (!response.ok) throw new Error('Could not add guitar');
 }
 
 export async function deleteGuitarFromAPI(guitarId: string): Promise<void> {
-  await fetch(`/api/guitars/${guitarId}`, { method: 'DELETE' });
+  if (isLocalPreview) return;
+  const response = await fetch(`/api/guitars/${guitarId}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error('Could not delete guitar');
 }
 
 export async function syncMaintenanceLogToAPI(log: MaintenanceLog): Promise<void> {
-  await fetch(`/api/maintenance-logs/${log.id}`, {
+  if (isLocalPreview) return;
+  const response = await fetch(`/api/maintenance-logs/${log.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -143,10 +151,12 @@ export async function syncMaintenanceLogToAPI(log: MaintenanceLog): Promise<void
       notes: log.notes,
     }),
   });
+  if (!response.ok) throw new Error('Could not update maintenance log');
 }
 
 export async function addMaintenanceLogToAPI(log: MaintenanceLog): Promise<void> {
-  await fetch('/api/maintenance-logs', {
+  if (isLocalPreview) return;
+  const response = await fetch('/api/maintenance-logs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -158,10 +168,13 @@ export async function addMaintenanceLogToAPI(log: MaintenanceLog): Promise<void>
       createdAt: log.createdAt.toISOString(),
     }),
   });
+  if (!response.ok) throw new Error('Could not add maintenance log');
 }
 
 export async function deleteMaintenanceLogFromAPI(logId: string): Promise<void> {
-  await fetch(`/api/maintenance-logs/${logId}`, { method: 'DELETE' });
+  if (isLocalPreview) return;
+  const response = await fetch(`/api/maintenance-logs/${logId}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error('Could not delete maintenance log');
 }
 
 const AppContext = createContext<{
@@ -173,6 +186,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
   useEffect(() => {
+    if (isLocalPreview) {
+      dispatch({ type: 'LOAD_STATE', payload: hasStoredState() ? loadFromStorage() : createPreviewState() });
+      return;
+    }
     const load = async () => {
       try {
         const [gRes, mRes] = await Promise.all([

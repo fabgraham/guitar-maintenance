@@ -5,6 +5,7 @@ import { useAppState, syncGuitarToAPI, addGuitarToAPI } from '@/hooks/useAppStat
 import { useToast } from '@/contexts/ToastContext';
 import { Guitar } from '@/types';
 import { X } from 'lucide-react';
+import { Modal } from '@/components/Modal';
 
 interface GuitarFormProps {
   guitarId?: string | null;
@@ -19,7 +20,6 @@ const inputStyle: React.CSSProperties = {
   padding: '11px 13px',
   fontSize: 16,
   color: '#181e2e',
-  outline: 'none',
   boxSizing: 'border-box',
 };
 
@@ -88,36 +88,17 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,20,60,0.18)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-        zIndex: 50,
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div style={{
-        background: '#ffffff',
-        borderRadius: 16,
-        padding: 28,
-        width: '100%',
-        maxWidth: 420,
-        boxShadow: '0 20px 60px rgba(0,20,60,0.15)',
-      }}>
+    <Modal labelledBy="guitar-form-title" onClose={onClose} initialFocus="input[name=maker]">
         {/* Modal header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: '#181e2e', margin: 0 }}>
+          <h3 id="guitar-form-title" style={{ fontSize: 16, fontWeight: 600, color: '#181e2e', margin: 0 }}>
             {guitarId ? 'Edit Guitar' : 'Add Guitar'}
           </h3>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a0a8bc', padding: 4 }}
+            aria-label="Close guitar form"
+            className="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-surface-2"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5c6680', padding: 4 }}
           >
             <X size={18} />
           </button>
@@ -126,9 +107,10 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
             <div>
-              <label style={labelStyle}>Maker *</label>
+              <label htmlFor="guitar-maker" style={labelStyle}>Maker *</label>
               <input
                 type="text"
+                id="guitar-maker"
                 name="maker"
                 value={formData.maker}
                 onChange={handleChange}
@@ -138,9 +120,10 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
               />
             </div>
             <div>
-              <label style={labelStyle}>Model *</label>
+              <label htmlFor="guitar-model" style={labelStyle}>Model *</label>
               <input
                 type="text"
+                id="guitar-model"
                 name="model"
                 value={formData.model}
                 onChange={handleChange}
@@ -150,9 +133,10 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
               />
             </div>
             <div>
-              <label style={labelStyle}>Year</label>
+              <label htmlFor="guitar-year" style={labelStyle}>Year</label>
               <input
                 type="number"
+                id="guitar-year"
                 name="year"
                 value={formData.year}
                 onChange={handleChange}
@@ -168,6 +152,7 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
             <button
               type="button"
               onClick={onClose}
+              className="min-h-[44px]"
               disabled={isSubmitting}
               style={{
                 background: '#e8ecf2',
@@ -184,9 +169,10 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
             </button>
             <button
               type="submit"
+              className="min-h-[44px]"
               disabled={isSubmitting || !canSubmit}
               style={{
-                background: canSubmit && !isSubmitting ? '#4d7cf6' : 'rgba(77,124,246,0.35)',
+                background: canSubmit && !isSubmitting ? '#2853bd' : 'rgba(77,124,246,0.35)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 9,
@@ -201,7 +187,6 @@ export function GuitarForm({ guitarId, onClose }: GuitarFormProps) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

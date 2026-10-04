@@ -3,6 +3,7 @@ import './globals.css'
 import { AppProvider } from '@/hooks/useAppState'
 import { Navigation } from '@/components/Navigation'
 import { ToastProvider } from '@/contexts/ToastContext'
+import { PreviewNotice } from '@/components/PreviewNotice'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -17,6 +18,11 @@ const spaceMono = Space_Mono({
   display: 'swap',
 })
 
+export const metadata = {
+  title: 'Guitar Maintenance',
+  description: 'Track your guitar collection, string changes, setups and repairs.',
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -29,6 +35,7 @@ export default function RootLayout({
           <AppProvider>
             <Navigation />
             <div className="content">
+              <PreviewNotice />
               {children}
             </div>
           </AppProvider>

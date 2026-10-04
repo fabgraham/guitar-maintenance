@@ -1,257 +1,123 @@
 'use client';
 
 import { useState } from 'react';
+import { Trash2, Download, Upload, Database, CheckCircle2 } from 'lucide-react';
 import { useAppState } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { Trash2, Download, Upload, Database } from 'lucide-react';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { StatusBadge } from '@/components/StatusBadge';
 import { seedGuitars, seedMaintenanceLogs } from '@/utils/seedData';
+import { createPreviewState, isLocalPreview } from '@/utils/preview';
+import { MAINTENANCE_THRESHOLDS } from '@/utils/maintenance';
+import { parseBackup } from '@/utils/backup';
+import { AppState } from '@/types';
 
 export default function Settings() {
   const { state, dispatch } = useAppState();
   const { showToast } = useToast();
-  const [confirmClear, setConfirmClear] = useState(false);
-  const [confirmImport, setConfirmImport] = useState(false);
-  const [confirmSeed, setConfirmSeed] = useState(false);
-  const [pendingImportData, setPendingImportData] = useState<any>(null);
+  const [confirmation, setConfirmation] = useState<'clear' | 'import' | 'sample' | null>(null);
+  const [pendingImport, setPendingImport] = useState<AppState | null>(null);
 
-  const handleClearAllData = () => {
-    setConfirmClear(true);
-  };
-
-  const confirmClearAllData = () => {
-    // Clear localStorage
-    localStorage.removeItem('guitar-maintenance-app');
-
-    // Reset state
-    dispatch({
-      type: 'LOAD_STATE',
-      payload: { guitars: [], maintenanceLogs: [], isLoading: false }
-    });
-
-    showToast('All data has been cleared', 'success');
-    setConfirmClear(false);
-  };
-
-  const handleExportData = () => {
-    const dataStr = JSON.stringify(state, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
+  const exportData = () => {
+    const blob = new Blob([JSON.stringify({ guitars: state.guitars, maintenanceLogs: state.maintenanceLogs }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `guitar-maintenance-data-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `guitar-maintenance-${isLocalPreview ? 'preview-' : ''}${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(url);
+    showToast('Backup downloaded', 'success');
   };
 
-  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const importData = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedData = JSON.parse(e.target?.result as string);
-
-        // Validate the imported data structure
-        if (!importedData.guitars || !importedData.maintenanceLogs) {
-          showToast('Invalid file format. Please select a valid backup file.', 'error');
-          return;
-        }
-
-        // Store for confirmation
-        setPendingImportData(importedData);
-        setConfirmImport(true);
-      } catch (error) {
-        showToast('Error importing data. Please check the file format.', 'error');
-      }
-    };
-    reader.readAsText(file);
+    try {
+      const parsed = parseBackup(JSON.parse(await file.text()));
+      setPendingImport(parsed);
+      setConfirmation('import');
+    } catch {
+      showToast('Invalid backup. Choose an exported Guitar Maintenance JSON file.', 'error');
+    }
   };
 
-  const confirmImportData = () => {
-    // Parse dates from strings
-    const parsedData = {
-      guitars: pendingImportData.guitars.map((g: any) => ({
-        ...g,
-        createdAt: new Date(g.createdAt),
-        updatedAt: new Date(g.updatedAt)
-      })),
-      maintenanceLogs: pendingImportData.maintenanceLogs.map((m: any) => ({
-        ...m,
-        maintenanceDate: new Date(m.maintenanceDate),
-        createdAt: new Date(m.createdAt)
-      })),
-      isLoading: false
-    };
-
-    dispatch({ type: 'LOAD_STATE', payload: parsedData });
-    showToast('Data imported successfully!', 'success');
-    setConfirmImport(false);
-    setPendingImportData(null);
+  const confirmAction = () => {
+    if (confirmation === 'clear') {
+      dispatch({ type: 'LOAD_STATE', payload: { guitars: [], maintenanceLogs: [], isLoading: false } });
+      showToast(isLocalPreview ? 'Preview data cleared' : 'Browser data cleared', 'success');
+    } else if (confirmation === 'sample') {
+      dispatch({ type: 'LOAD_STATE', payload: isLocalPreview ? createPreviewState() : { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } });
+      showToast('Sample collection loaded', 'success');
+    } else if (confirmation === 'import' && pendingImport) {
+      dispatch({ type: 'LOAD_STATE', payload: pendingImport });
+      showToast('Backup restored in this browser', 'success');
+    }
+    setConfirmation(null);
+    setPendingImport(null);
   };
 
-  const handleSeedSampleData = () => {
-    setConfirmSeed(true);
-  };
-
-  const confirmSeedSampleData = () => {
-    dispatch({
-      type: 'LOAD_STATE',
-      payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false }
-    });
-
-    showToast('Sample data added successfully!', 'success');
-    setConfirmSeed(false);
+  const dialogs = {
+    clear: { title: isLocalPreview ? 'Clear Preview Data' : 'Clear Browser Data', description: 'Remove all guitars and maintenance logs from this browser’s copy. Export a backup first if you want to keep them.', confirmText: 'Clear Data' },
+    import: { title: 'Restore Backup', description: 'Replace this browser’s collection with the selected backup? Export your current data first if you want to keep it.', confirmText: 'Restore Backup' },
+    sample: { title: 'Load Sample Collection', description: 'Replace this browser’s collection with sample guitars and maintenance logs? Export your current data first if you want to keep it.', confirmText: 'Load Samples' },
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-          <p className="mt-1 text-sm text-gray-600">
-            Manage your application preferences and data
-          </p>
+    <main className="page-shell">
+      <div className="mb-7"><p className="section-label mb-2">Preferences & data</p><h1 className="page-title">Settings</h1><p className="mt-2 text-sm text-[#5c6680]">Back up your collection and understand its maintenance status.</p></div>
+      {state.isLoading ? <LoadingSkeleton /> : (
+        <div className="max-w-4xl space-y-5">
+          <section className="panel" aria-labelledby="data-heading">
+            <h2 id="data-heading" className="text-lg font-semibold mb-2">Backup and browser data</h2>
+            <p className="text-sm text-[#5c6680] mb-6">{isLocalPreview ? 'You’re using a sample collection. Changes stay in this browser, and your live collection is untouched.' : 'Restore, sample and clear tools update this browser’s copy. Your synced collection is loaded again when you refresh.'}</p>
+            <div className="divide-y divide-black/10">
+              <div className="pb-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
+                <div><h3 className="font-semibold text-sm">Export a backup</h3><p className="text-sm text-[#5c6680] mt-1">Download your guitars and maintenance history as a JSON file.</p></div>
+                <button className="btn btn-secondary shrink-0 self-start" onClick={exportData}><Download size={16} />Export Data</button>
+              </div>
+              <div className="py-5">
+                <h3 className="font-semibold text-sm">Restore a backup</h3><p className="text-sm text-[#5c6680] mt-1 mb-3">Choose a previously exported file to replace this browser’s collection.</p>
+                <label htmlFor="backup-file" className="flex items-center gap-2 text-sm font-medium mb-2"><Upload size={16} />Backup file</label>
+                <input id="backup-file" type="file" accept=".json,application/json" onChange={importData} className="block w-full max-w-full text-sm text-[#5c6680] file:mr-3 file:px-4 file:py-3 file:rounded-[10px] file:border-0 file:font-semibold file:bg-surface-2 file:text-[#181e2e]" />
+              </div>
+              <div className="pt-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
+                <div><h3 className="font-semibold text-sm">Try a sample collection</h3><p className="text-sm text-[#5c6680] mt-1">Explore maintenance tracking with sample guitars.</p></div>
+                <button className="btn btn-secondary shrink-0 self-start" onClick={() => setConfirmation('sample')}><Database size={16} />Load Samples</button>
+              </div>
+            </div>
+          </section>
+
+          <section className="panel" aria-labelledby="stats-heading">
+            <h2 id="stats-heading" className="text-lg font-semibold mb-5">Your collection</h2>
+            <dl className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl bg-surface-2 p-4"><dd className="text-3xl font-bold mb-1" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>{state.guitars.length}</dd><dt className="text-sm text-[#5c6680]">Guitars</dt></div>
+              <div className="rounded-xl bg-surface-2 p-4"><dd className="text-3xl font-bold mb-1" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>{state.maintenanceLogs.length}</dd><dt className="text-sm text-[#5c6680]">Maintenance entries</dt></div>
+            </dl>
+          </section>
+
+          <section className="panel" aria-labelledby="status-heading">
+            <h2 id="status-heading" className="text-lg font-semibold mb-2">When is maintenance due?</h2>
+            <p className="text-sm text-[#5c6680] mb-5">Status is based on the date of the latest maintenance entry.</p>
+            <ul className="space-y-4 text-sm">
+              <li className="flex flex-wrap items-center gap-3"><StatusBadge status="good" /><span>Up to {MAINTENANCE_THRESHOLDS.maintained} days since maintenance.</span></li>
+              <li className="flex flex-wrap items-center gap-3"><StatusBadge status="warning" /><span>{MAINTENANCE_THRESHOLDS.maintained + 1}–{MAINTENANCE_THRESHOLDS.needsService} days since maintenance.</span></li>
+              <li className="flex flex-wrap items-center gap-3"><StatusBadge status="urgent" /><span>More than {MAINTENANCE_THRESHOLDS.needsService} days, or no maintenance history.</span></li>
+            </ul>
+            <p className="flex items-start gap-2 text-sm text-[#5c6680] mt-5"><CheckCircle2 size={16} className="shrink-0 mt-0.5" />Add an entry after changing strings, completing a setup or making a repair.</p>
+          </section>
+
+          <section className="panel border-red-200" aria-labelledby="clear-heading">
+            <h2 id="clear-heading" className="text-lg font-semibold text-[#b91c1c] mb-2">Clear {isLocalPreview ? 'preview' : 'browser'} data</h2>
+            <p className="text-sm text-[#5c6680] mb-4">Remove this browser’s collection and maintenance history. Export a backup first if you want to keep it.{!isLocalPreview && ' This does not delete your synced collection.'}</p>
+            <button className="btn btn-danger" onClick={() => setConfirmation('clear')}><Trash2 size={16} />Clear Data</button>
+          </section>
         </div>
-
-        <div className="space-y-6">
-          <div className="card">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Data Management</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Seed Sample Data</h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  Add sample guitars and maintenance logs to test the application.
-                </p>
-                <button
-                  onClick={handleSeedSampleData}
-                  className="btn btn-secondary inline-flex items-center"
-                >
-                  <Database className="w-4 h-4 mr-2" />
-                  Add Sample Data
-                </button>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Export Data</h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  Download a backup of all your guitars and maintenance logs as a JSON file.
-                </p>
-                <button
-                  onClick={handleExportData}
-                  className="btn btn-secondary inline-flex items-center"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Data
-                </button>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Import Data</h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  Restore your data from a previously exported JSON file.
-                </p>
-                <div className="flex items-center">
-                  <Upload className="w-4 h-4 text-gray-400 mr-2" />
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={handleImportData}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-gray-200">
-                <h4 className="text-sm font-medium text-red-700 mb-2">Clear All Data</h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  Permanently delete all guitars and maintenance logs. This action cannot be undone.
-                </p>
-                <button
-                  onClick={handleClearAllData}
-                  className="btn btn-danger inline-flex items-center"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear All Data
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Application Statistics</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary-600">
-                  {state.guitars.length}
-                </div>
-                <div className="text-sm text-gray-600">Guitars</div>
-              </div>
-
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary-600">
-                  {state.maintenanceLogs.length}
-                </div>
-                <div className="text-sm text-gray-600">Maintenance Logs</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">About</h3>
-            
-            <div className="space-y-2 text-sm text-gray-600">
-              <p>
-                <strong>Guitar Maintenance Dashboard</strong> helps you track the maintenance status of your guitar collection.
-              </p>
-              <p>
-                The application uses color-coded status indicators:
-              </p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li><span className="text-red-600 font-medium">Red</span>: Needs maintenance (&gt; 4 months)</li>
-                <li><span className="text-yellow-600 font-medium">Yellow</span>: Due soon (2–4 months)</li>
-                <li><span className="text-green-600 font-medium">Green</span>: Recently maintained (&lt; 2 months)</li>
-              </ul>
-              <p>
-                All data is stored locally in your browser using localStorage.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <ConfirmDialog
-          isOpen={confirmClear}
-          title="Clear All Data"
-          description="Are you sure you want to clear all data? This will delete all guitars and maintenance logs. This action cannot be undone."
-          confirmText="Clear All Data"
-          onConfirm={confirmClearAllData}
-          onCancel={() => setConfirmClear(false)}
-        />
-
-        <ConfirmDialog
-          isOpen={confirmImport}
-          title="Import Data"
-          description="This will replace all existing data. Are you sure you want to continue?"
-          confirmText="Import Data"
-          onConfirm={confirmImportData}
-          onCancel={() => {
-            setConfirmImport(false);
-            setPendingImportData(null);
-          }}
-        />
-
-        <ConfirmDialog
-          isOpen={confirmSeed}
-          title="Add Sample Data"
-          description="This will add sample guitars and maintenance logs to your collection. Continue?"
-          confirmText="Add Sample Data"
-          onConfirm={confirmSeedSampleData}
-          onCancel={() => setConfirmSeed(false)}
-        />
+      )}
+      <ConfirmDialog isOpen={confirmation !== null} {...dialogs[confirmation ?? 'clear']} destructive={confirmation === 'clear'} onConfirm={confirmAction} onCancel={() => { setConfirmation(null); setPendingImport(null); }} />
     </main>
   );
 }

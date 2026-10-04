@@ -1,7 +1,7 @@
 'use client';
 
 import { MaintenanceLog } from '@/types';
-import { Edit, Trash2, CalendarDays } from 'lucide-react';
+import { Edit, Trash2, CalendarDays, ChevronDown } from 'lucide-react';
 import { useAppState, deleteMaintenanceLogFromAPI } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
 import { useState } from 'react';
@@ -61,8 +61,8 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                 height: 33,
                 borderRadius: '50%',
                 flexShrink: 0,
-                background: isLatest ? '#4d7cf6' : '#e8ecf2',
-                border: `1px solid ${isLatest ? '#4d7cf6' : 'rgba(0,20,60,0.14)'}`,
+                background: isLatest ? '#2853bd' : '#e8ecf2',
+                border: `1px solid ${isLatest ? '#2853bd' : 'rgba(0,20,60,0.14)'}`,
                 boxShadow: isLatest ? '0 0 0 4px rgba(77,124,246,0.15)' : 'none',
                 display: 'flex',
                 alignItems: 'center',
@@ -70,21 +70,20 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                 zIndex: 1,
                 marginTop: 2,
               }}>
-                <CalendarDays size={14} strokeWidth={1.5} color={isLatest ? '#fff' : '#a0a8bc'} />
+                <CalendarDays size={14} strokeWidth={1.5} color={isLatest ? '#fff' : '#5c6680'} />
               </div>
 
-              {/* Log card — tap anywhere to expand actions */}
+              {/* Maintenance entry */}
               <div
-                onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
                 style={{
                   flex: 1,
+                  minWidth: 0,
+                  overflowWrap: 'anywhere',
                   background: '#ffffff',
                   border: `1px solid ${isLatest ? 'rgba(77,124,246,0.33)' : 'rgba(0,20,60,0.08)'}`,
                   borderRadius: 11,
                   padding: '12px 15px',
-                  cursor: 'pointer',
                   transition: 'background 0.12s',
-                  userSelect: 'none',
                 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#f8f9fc'; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#ffffff'; }}
@@ -97,13 +96,13 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                   {isLatest && (
                     <span style={{
                       fontSize: 9, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase',
-                      color: '#4d7cf6', background: 'rgba(77,124,246,0.10)',
+                      color: '#2853bd', background: 'rgba(77,124,246,0.10)',
                       borderRadius: 99, padding: '2px 7px', flexShrink: 0,
                     }}>
                       Latest
                     </span>
                   )}
-                  <span style={{ fontSize: 12, color: '#a0a8bc', flexShrink: 0 }}>
+                  <span style={{ fontSize: 13, color: '#5c6680', flexShrink: 0 }}>
                     {formatDate(log.maintenanceDate)}
                   </span>
                 </div>
@@ -112,46 +111,56 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                   <p style={{ fontSize: 13, color: '#5c6680', margin: '6px 0 0' }}>{log.notes}</p>
                 )}
 
-                {/* Expanded actions — revealed on tap */}
-                {isExpanded && (
+                <button
+                  aria-expanded={isExpanded}
+                  aria-controls={`log-actions-${log.id}`}
+                  aria-label={`Actions for ${log.typeOfWork} on ${formatDate(log.maintenanceDate)}`}
+                  onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                  className="inline-flex items-center gap-1 min-h-[44px] mt-2 text-sm font-medium text-[#2853bd]"
+                >
+                  Actions <ChevronDown size={14} className={isExpanded ? 'rotate-180' : ''} />
+                </button>
+
+                {/* Entry actions */}
                   <div
+                    id={`log-actions-${log.id}`}
+                    hidden={!isExpanded}
                     style={{
-                      display: 'flex',
+                      display: isExpanded ? 'flex' : 'none',
                       gap: 8,
-                      marginTop: 12,
+                      marginTop: 4,
                       paddingTop: 10,
                       borderTop: '1px solid rgba(0,20,60,0.08)',
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
+                      className="min-h-[44px]"
                       onClick={() => { setExpandedLogId(null); onEditClick(log.id); }}
                       style={{
                         flex: 1,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         background: '#e8ecf2', border: 'none', borderRadius: 8,
                         padding: '9px 0', fontSize: 13, fontWeight: 500, color: '#5c6680',
-                        cursor: 'pointer',
                       }}
                     >
                       <Edit size={14} strokeWidth={1.5} />
                       Edit
                     </button>
                     <button
-                      onClick={() => { setExpandedLogId(null); setConfirmingLogId(log.id); }}
+                      className="min-h-[44px]"
+                      onClick={() => { setConfirmingLogId(log.id); }}
                       style={{
                         flex: 1,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         background: 'rgba(212,32,32,0.08)', border: 'none', borderRadius: 8,
-                        padding: '9px 0', fontSize: 13, fontWeight: 500, color: '#d42020',
-                        cursor: 'pointer',
+                        padding: '9px 0', fontSize: 13, fontWeight: 500, color: '#b91c1c',
                       }}
                     >
                       <Trash2 size={14} strokeWidth={1.5} />
                       Delete
                     </button>
                   </div>
-                )}
               </div>
 
               <ConfirmDialog
