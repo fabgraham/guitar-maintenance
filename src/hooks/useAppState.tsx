@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AppState, Guitar, MaintenanceLog } from '@/types';
 import { hasStoredState, loadFromStorage, saveToStorage } from '@/utils/storage';
-import { seedGuitars, seedMaintenanceLogs } from '@/utils/seedData';
 import { createPreviewState, isLocalPreview } from '@/utils/preview';
 
 type AppAction =
@@ -87,6 +86,8 @@ function parseGuitar(r: any): Guitar {
     year: r.year || '',
     createdAt: new Date(r.createdAt),
     updatedAt: new Date(r.updatedAt),
+    soldDate: r.soldDate ?? null,
+    soldPrice: r.soldPrice ?? null,
   };
 }
 
@@ -114,6 +115,20 @@ export async function syncGuitarToAPI(guitar: Guitar): Promise<void> {
     }),
   });
   if (!response.ok) throw new Error('Could not update guitar');
+}
+
+export async function saveSaleToAPI(guitar: Guitar): Promise<void> {
+  if (isLocalPreview) return;
+  const response = await fetch(`/api/guitars/${guitar.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      soldDate: guitar.soldDate ?? null,
+      soldPrice: guitar.soldPrice ?? null,
+      updatedAt: guitar.updatedAt.toISOString(),
+    }),
+  });
+  if (!response.ok) throw new Error('Could not save sale details');
 }
 
 export async function addGuitarToAPI(guitar: Guitar): Promise<void> {
@@ -205,21 +220,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const guitars: Guitar[] = gData.map(parseGuitar);
         const maintenanceLogs: MaintenanceLog[] = mData.map(parseLog);
 
-        if (guitars.length === 0 && maintenanceLogs.length === 0) {
-          await Promise.all(seedGuitars.map(g => addGuitarToAPI(g)));
-          await Promise.all(seedMaintenanceLogs.map(m => addMaintenanceLogToAPI(m)));
-          dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } });
-          return;
-        }
-
         dispatch({ type: 'LOAD_STATE', payload: { guitars, maintenanceLogs, isLoading: false } });
       } catch {
-        const loadedState = loadFromStorage();
-        if (loadedState.guitars.length > 0 || loadedState.maintenanceLogs.length > 0) {
-          dispatch({ type: 'LOAD_STATE', payload: { ...loadedState, isLoading: false } });
-        } else {
-          dispatch({ type: 'LOAD_STATE', payload: { guitars: seedGuitars, maintenanceLogs: seedMaintenanceLogs, isLoading: false } });
-        }
+        dispatch({ type: 'LOAD_STATE', payload: { ...loadFromStorage(), isLoading: false, loadError: true } });
       }
     };
     load();

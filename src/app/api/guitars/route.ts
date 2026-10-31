@@ -3,7 +3,7 @@ import { getPool } from '@/lib/db';
 
 export async function GET() {
   const { rows } = await getPool().query(
-    'SELECT id, maker, model, year, created_at, updated_at FROM guitars ORDER BY created_at ASC'
+    'SELECT id, maker, model, year, created_at, updated_at, sold_date::text AS sold_date, sold_price::float8 AS sold_price FROM guitars ORDER BY created_at ASC'
   );
   const guitars = rows.map(r => ({
     id: r.id,
@@ -12,6 +12,8 @@ export async function GET() {
     year: r.year || '',
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    soldDate: r.sold_date,
+    soldPrice: r.sold_price,
   }));
   return NextResponse.json(guitars);
 }

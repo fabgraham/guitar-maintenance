@@ -9,10 +9,11 @@ import { ConfirmDialog } from './ConfirmDialog';
 
 interface MaintenanceLogListProps {
   logs: MaintenanceLog[];
-  onEditClick: (logId: string) => void;
+  onEditClick?: (logId: string) => void;
+  readOnly?: boolean;
 }
 
-export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProps) {
+export function MaintenanceLogList({ logs, onEditClick, readOnly = false }: MaintenanceLogListProps) {
   const { dispatch } = useAppState();
   const { showToast } = useToast();
   const [confirmingLogId, setConfirmingLogId] = useState<string | null>(null);
@@ -31,7 +32,7 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
         textAlign: 'center',
       }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: '#181e2e', marginBottom: 6 }}>No maintenance history</p>
-        <p style={{ fontSize: 13, color: '#5c6680' }}>Add your first maintenance log to start tracking.</p>
+        {!readOnly && <p style={{ fontSize: 13, color: '#5c6680' }}>Add your first maintenance log to start tracking.</p>}
       </div>
     );
   }
@@ -111,7 +112,7 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                   <p style={{ fontSize: 13, color: '#5c6680', margin: '6px 0 0' }}>{log.notes}</p>
                 )}
 
-                <button
+                {!readOnly && <><button
                   aria-expanded={isExpanded}
                   aria-controls={`log-actions-${log.id}`}
                   aria-label={`Actions for ${log.typeOfWork} on ${formatDate(log.maintenanceDate)}`}
@@ -136,7 +137,7 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                   >
                     <button
                       className="min-h-[44px]"
-                      onClick={() => { setExpandedLogId(null); onEditClick(log.id); }}
+                      onClick={() => { setExpandedLogId(null); onEditClick?.(log.id); }}
                       style={{
                         flex: 1,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -161,6 +162,7 @@ export function MaintenanceLogList({ logs, onEditClick }: MaintenanceLogListProp
                       Delete
                     </button>
                   </div>
+                </>}
               </div>
 
               <ConfirmDialog

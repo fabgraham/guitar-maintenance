@@ -10,12 +10,13 @@ import { GuitarForm } from '@/components/GuitarForm';
 import { MaintenanceLogForm } from '@/components/MaintenanceLogForm';
 import { MaintenanceLogList } from '@/components/MaintenanceLogList';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { SaleDialog } from '@/components/SaleDialog';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { StatusBadge } from '@/components/StatusBadge';
-import { useAppState, deleteGuitarFromAPI } from '@/hooks/useAppState';
+import { useAppState, deleteGuitarFromAPI, saveSaleToAPI } from '@/hooks/useAppState';
 import { useToast } from '@/contexts/ToastContext';
-import { calculateMaintenanceStatus } from '@/utils/maintenance';
-import { ArrowLeft, Plus, Trash2, Pencil } from 'lucide-react';
+import { calculateMaintenanceStatus, formatSoldDate, formatSoldPrice, isArchived } from '@/utils/maintenance';
+import { Archive, ArchiveRestore, ArrowLeft, Plus, Trash2, Pencil } from 'lucide-react';
 import Link from 'next/link';
 
 const STATUS_COLORS = {
@@ -33,6 +34,8 @@ export default function GuitarDetail() {
   const [editingLog, setEditingLog] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showSaleDialog, setShowSaleDialog] = useState(false);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
 
   const guitarId = params.id as string;
   const guitar = state.guitars.find(g => g.id === guitarId);
@@ -61,6 +64,19 @@ export default function GuitarDetail() {
     .sort((a, b) => b.maintenanceDate.getTime() - a.maintenanceDate.getTime());
 
   const colors = STATUS_COLORS[guitarWithStatus.status];
+  const archived = isArchived(guitar);
+
+  const restoreGuitar = async () => {
+    setShowRestoreConfirm(false);
+    const restored = { ...guitar, soldDate: null, soldPrice: null, updatedAt: new Date() };
+    try {
+      await saveSaleToAPI(restored);
+      dispatch({ type: 'UPDATE_GUITAR', payload: restored });
+      showToast('Guitar moved back to your collection', 'success');
+    } catch {
+      showToast('Could not restore this guitar. Please try again.', 'error');
+    }
+  };
 
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(date);
@@ -78,7 +94,7 @@ export default function GuitarDetail() {
         {/* Back button */}
         <button
           aria-label="Back to collection"
-          onClick={() => router.push('/inventory')}
+          onClick={() => router.push(archived ? '/inventory?view=archive' : '/inventory')}
           style={{
             width: 44, height: 44, borderRadius: 9,
             background: '#e8ecf2', border: 'none', cursor: 'pointer',
@@ -100,7 +116,7 @@ export default function GuitarDetail() {
         </div>
 
         {/* Action buttons */}
-        <button
+        {!archived && <button
           aria-label="Edit guitar"
           onClick={() => setShowEditForm(true)}
           style={{
@@ -111,7 +127,7 @@ export default function GuitarDetail() {
           }}
         >
           <Pencil size={15} style={{ color: '#2853bd' }} />
-        </button>
+        </button>}
         <button
           aria-label="Delete guitar"
           onClick={() => setShowDeleteConfirm(true)}
@@ -128,7 +144,21 @@ export default function GuitarDetail() {
 
       {/* Content */}
       <div className="detail-content">
-        <div className="mb-4"><StatusBadge status={guitarWithStatus.status} /></div>
+        {archived ? (
+          <div className="panel mb-7">
+            <p className="section-label mb-3">Sold</p>
+            <p className="text-lg font-semibold">{formatSoldDate(guitar.soldDate!)}</p>
+            <p className="text-sm text-[#5c6680] mt-1">{guitar.soldPrice != null ? formatSoldPrice(guitar.soldPrice) : 'No price recorded'}</p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <button className="btn btn-secondary" onClick={() => setShowSaleDialog(true)}><Pencil size={15} />Edit sale details</button>
+              <button className="btn btn-secondary" onClick={() => setShowRestoreConfirm(true)}><ArchiveRestore size={16} />Restore to collection</button>
+            </div>
+          </div>
+        ) : <>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <StatusBadge status={guitarWithStatus.status} />
+          <button className="btn btn-secondary" onClick={() => setShowSaleDialog(true)}><Archive size={16} />Move to archive</button>
+        </div>
         {/* Last maintenance summary card */}
         <div style={{
           background: '#e8ecf2',
@@ -187,6 +217,7 @@ export default function GuitarDetail() {
             </div>
           )}
         </div>
+        </>}
 
         {/* History section */}
         <div>
@@ -194,7 +225,7 @@ export default function GuitarDetail() {
             <p style={{ fontSize: 11, fontWeight: 600, color: '#5c6680', letterSpacing: '0.10em', textTransform: 'uppercase' }}>
               History · {guitarLogs.length}
             </p>
-            <button
+            {!archived && <button
               className="min-h-[44px]"
               onClick={() => { setEditingLog(null); setShowLogForm(true); }}
               style={{
@@ -205,7 +236,7 @@ export default function GuitarDetail() {
             >
               <Plus size={13} />
               Add Entry
-            </button>
+            </button>}
           </div>
 
           {showLogForm && (
@@ -220,6 +251,7 @@ export default function GuitarDetail() {
 
           <MaintenanceLogList
             logs={guitarLogs}
+            readOnly={archived}
             onEditClick={(logId) => {
               setEditingLog(logId);
               setShowLogForm(true);
@@ -232,6 +264,20 @@ export default function GuitarDetail() {
       {showEditForm && (
         <GuitarForm guitarId={guitarId} onClose={() => setShowEditForm(false)} />
       )}
+
+      {showSaleDialog && (
+        <SaleDialog guitar={guitar} onClose={() => setShowSaleDialog(false)} />
+      )}
+
+      <ConfirmDialog
+        isOpen={showRestoreConfirm}
+        title="Restore Guitar"
+        description="This moves the guitar back to your collection and removes its sold date and price."
+        confirmText="Restore"
+        destructive={false}
+        onConfirm={restoreGuitar}
+        onCancel={() => setShowRestoreConfirm(false)}
+      />
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}

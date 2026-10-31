@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { GuitarForm } from '@/components/GuitarForm';
 import { GuitarList } from '@/components/GuitarList';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { Plus } from 'lucide-react';
 
 export default function Inventory() {
@@ -57,7 +58,9 @@ export default function Inventory() {
         </button>
       </div>
 
-      <GuitarList onEditClick={handleEditClick} />
+      <Suspense fallback={<LoadingSkeleton />}>
+        <GuitarList onEditClick={handleEditClick} />
+      </Suspense>
 
       {showForm && (
         <GuitarForm

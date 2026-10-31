@@ -38,7 +38,7 @@ export function Navigation() {
     } catch {}
   };
 
-  const guitarCount = state.guitars.length;
+  const guitarCount = state.guitars.filter(guitar => !guitar.soldDate).length;
 
   return (
     <>

@@ -8,7 +8,7 @@ import { GuitarForm } from '@/components/GuitarForm';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { statusStyles } from '@/components/StatusBadge';
 import { useAppState } from '@/hooks/useAppState';
-import { calculateMaintenanceStatus, getStatusText } from '@/utils/maintenance';
+import { calculateMaintenanceStatus, getStatusText, isArchived } from '@/utils/maintenance';
 import { MaintenanceStatus } from '@/types';
 
 export default function Dashboard() {
@@ -22,7 +22,7 @@ export default function Dashboard() {
     return () => window.removeEventListener('reset-dashboard', reset);
   }, []);
 
-  const guitars = state.guitars.map(guitar => calculateMaintenanceStatus(guitar, state.maintenanceLogs));
+  const guitars = state.guitars.filter(guitar => !isArchived(guitar)).map(guitar => calculateMaintenanceStatus(guitar, state.maintenanceLogs));
   const count = (status: MaintenanceStatus) => guitars.filter(guitar => guitar.status === status).length;
   const urgentCount = count('urgent');
   const warningCount = count('warning');

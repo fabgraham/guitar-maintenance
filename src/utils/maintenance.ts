@@ -2,6 +2,22 @@ import { Guitar, MaintenanceLog, GuitarWithStatus, MaintenanceStatus } from '@/t
 
 export const MAINTENANCE_THRESHOLDS = { maintained: 120, needsService: 180 };
 
+export const isArchived = (guitar: Guitar): boolean => Boolean(guitar.soldDate);
+
+export const formatSoldDate = (soldDate: string): string => {
+  const [year, month, day] = soldDate.split('-').map(Number);
+  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    .format(new Date(year, month - 1, day));
+};
+
+export const formatSoldPrice = (price: number): string =>
+  new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+    minimumFractionDigits: Number.isInteger(price) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(price);
+
 export const calculateMaintenanceStatus = (
   guitar: Guitar,
   maintenanceLogs: MaintenanceLog[]

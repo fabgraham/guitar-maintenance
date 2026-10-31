@@ -4,6 +4,7 @@ import { AppProvider } from '@/hooks/useAppState'
 import { Navigation } from '@/components/Navigation'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { PreviewNotice } from '@/components/PreviewNotice'
+import { LoadErrorNotice } from '@/components/LoadErrorNotice'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -36,6 +37,7 @@ export default function RootLayout({
             <Navigation />
             <div className="content">
               <PreviewNotice />
+              <LoadErrorNotice />
               {children}
             </div>
           </AppProvider>

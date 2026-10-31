@@ -9,10 +9,11 @@ A modern web application built with Next.js to help guitarists track the mainten
   - **Due Soon**: Instruments approaching their maintenance schedule.
   - **Good**: Guitars that have been recently maintained.
 - **Inventory Management**: Add, edit, and remove guitars from your digital collection.
+- **Guitar Archive**: Keep sold guitars, with their sale date, price and maintenance history.
 - **Maintenance Logs**: Detailed history for every service, string change, or repair.
 - **Smart Status**: Automatically calculates maintenance status based on the last service date.
 - **Responsive Design**: Works seamlessly on desktop and mobile devices.
-- **Data Persistence**: Your collection syncs to PostgreSQL, with a local browser copy as a fallback.
+- **Data Persistence**: Your collection syncs to PostgreSQL. If it can't be reached, a banner warns you and any saved browser copy is shown.
 
 ## 🛠️ Tech Stack
 
@@ -76,6 +77,12 @@ src/
 ├── types/            # TypeScript interfaces
 └── utils/            # Helper functions (dates, storage, seed data)
 ```
+
+## 📋 Releases
+
+See [CHANGELOG.md](CHANGELOG.md) for versions, dates and release notes. Database
+changes are in `db/migrations/` and must run before deploying the code that
+needs them.
 
 ## 🤝 Contributing
 

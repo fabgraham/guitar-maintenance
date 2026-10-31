@@ -18,6 +18,8 @@ export function parseBackup(value: unknown): AppState {
   const guitars: Guitar[] = data.guitars.map(guitar => ({
     id: text(guitar.id), maker: text(guitar.maker), model: text(guitar.model), year: text(guitar.year ?? ''),
     createdAt: date(guitar.createdAt), updatedAt: date(guitar.updatedAt),
+    soldDate: guitar.soldDate ? text(guitar.soldDate) : null,
+    soldPrice: typeof guitar.soldPrice === 'number' ? guitar.soldPrice : null,
   }));
   const ids = new Set(guitars.map(guitar => guitar.id));
   if (ids.size !== guitars.length || guitars.some(guitar => !guitar.id || !guitar.maker.trim() || !guitar.model.trim())) throw new Error('Invalid guitars');

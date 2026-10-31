@@ -9,7 +9,7 @@ import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { seedGuitars, seedMaintenanceLogs } from '@/utils/seedData';
 import { createPreviewState, isLocalPreview } from '@/utils/preview';
-import { MAINTENANCE_THRESHOLDS } from '@/utils/maintenance';
+import { MAINTENANCE_THRESHOLDS, isArchived } from '@/utils/maintenance';
 import { parseBackup } from '@/utils/backup';
 import { AppState } from '@/types';
 
@@ -94,7 +94,7 @@ export default function Settings() {
           <section className="panel" aria-labelledby="stats-heading">
             <h2 id="stats-heading" className="text-lg font-semibold mb-5">Your collection</h2>
             <dl className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl bg-surface-2 p-4"><dd className="text-3xl font-bold mb-1" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>{state.guitars.length}</dd><dt className="text-sm text-[#5c6680]">Guitars</dt></div>
+              <div className="rounded-xl bg-surface-2 p-4"><dd className="text-3xl font-bold mb-1" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>{state.guitars.filter(guitar => !isArchived(guitar)).length}</dd><dt className="text-sm text-[#5c6680]">Guitars</dt></div>
               <div className="rounded-xl bg-surface-2 p-4"><dd className="text-3xl font-bold mb-1" style={{ fontFamily: 'var(--font-space-mono), monospace' }}>{state.maintenanceLogs.length}</dd><dt className="text-sm text-[#5c6680]">Maintenance entries</dt></div>
             </dl>
           </section>
