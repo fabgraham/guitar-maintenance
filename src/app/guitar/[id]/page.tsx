@@ -239,12 +239,11 @@ export default function GuitarDetail() {
             </button>}
           </div>
 
-          {showLogForm && (
+          {showLogForm && !editingLog && (
             <div style={{ marginBottom: 16 }}>
               <MaintenanceLogForm
                 guitarId={guitarId}
-                logId={editingLog}
-                onClose={() => { setShowLogForm(false); setEditingLog(null); }}
+                onClose={() => setShowLogForm(false)}
               />
             </div>
           )}
@@ -252,10 +251,12 @@ export default function GuitarDetail() {
           <MaintenanceLogList
             logs={guitarLogs}
             readOnly={archived}
+            editingLogId={editingLog}
             onEditClick={(logId) => {
+              setShowLogForm(false);
               setEditingLog(logId);
-              setShowLogForm(true);
             }}
+            onEditClose={() => setEditingLog(null)}
           />
         </div>
       </div>

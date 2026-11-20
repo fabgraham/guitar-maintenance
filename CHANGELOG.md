@@ -9,6 +9,18 @@ Release history for Guitar Maintenance. Newest versions come first.
 
 ---
 
+## 0.6.0 — 2026-11-20
+
+### Changed
+- Maintenance history entries are cleaner. Tap an entry to expand it: you see the full notes and small **Edit** and **Delete** buttons. Tap it again to collapse. Only one entry is open at a time.
+- Collapsed entries show the first two lines of notes.
+- **Edit** opens the form in place in the timeline, instead of above the list.
+
+### Removed
+- The **Actions** toggle and the large Edit and Delete buttons under each entry.
+
+---
+
 ## 0.5.0 — 2026-10-31
 
 **Requires a database change.** Run `db/migrations/2026-10-31-guitar-archive.sql` before deploying. If the code goes first, `/api/guitars` fails.
